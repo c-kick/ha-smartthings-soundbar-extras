@@ -18,7 +18,35 @@
       "already_configured": "This soundbar is already configured.",
       "no_soundbars": "No compatible soundbars found. Set up the built-in SmartThings integration first and check that your soundbar is available.",
       "invalid_settings": "An unsupported audio setting was selected.",
-      "reconfigure_successful": "Audio controls updated."
+      "reconfigure_successful": "Audio controls updated.",
+      "not_supported": "This device is not set up from discovery. Add the soundbar through the SmartThings Soundbar Extras integration instead."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Local API",
+        "description": "Optionally also connect to the soundbar over your local network (Samsung IP Control). This adds the audio codec, direct input and sound-mode control, and real readback. SmartThings controls keep working either way. IP control must be enabled in the SmartThings app under the soundbar's settings.",
+        "data": {"use_local_api": "Use local API"}
+      },
+      "local": {
+        "title": "Local API connection",
+        "description": "Choose the soundbar's address. Soundbars found on your network are listed; you can also type an IP address.",
+        "data": {
+          "host": "IP address",
+          "poll_on": "Polling interval while on",
+          "poll_off": "Polling interval while off"
+        }
+      },
+      "confirm": {
+        "title": "Trust this soundbar?",
+        "description": "Connected to **{identifier}**.\n\nIts certificate fingerprint is:\n`{fingerprint}`\n\nThe local API will only talk to a device presenting this exact certificate."
+      }
+    },
+    "error": {
+      "cannot_connect": "Could not reach the soundbar at this address.",
+      "ip_control_disabled": "The soundbar refused the connection. Enable IP control in the SmartThings app and try again.",
+      "not_a_soundbar": "The device at this address is not a Samsung soundbar."
     }
   },
   "selector": {"settings": {"options": {
