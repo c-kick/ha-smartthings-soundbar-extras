@@ -106,7 +106,8 @@ class SoundbarControlConfigFlow(ConfigFlow, domain=DOMAIN):
             if not set(user_input.get("settings", [])).issubset(controls):
                 return self.async_abort(reason="invalid_settings")
             if reconfigure_entry := getattr(self, "_reconfigure_entry", None):
-                return self.async_update_reload_and_abort(
+                # The update listener schedules the reload (see __init__.py).
+                return self.async_update_and_abort(
                     reconfigure_entry, data_updates={"settings": user_input.get("settings", [])}
                 )
             return self.async_create_entry(

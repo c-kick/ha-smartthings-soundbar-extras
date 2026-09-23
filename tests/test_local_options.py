@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import pytest
+from homeassistant.config_entries import ConfigEntryState
 from homeassistant.data_entry_flow import FlowResultType
 from homeassistant.helpers import issue_registry as ir
 
@@ -12,7 +13,7 @@ from custom_components.soundbar_control.coordinator import issue_id
 from custom_components.soundbar_control.discovery import Advertised, discovered_soundbars
 
 from .local_fake import FakeSoundbar
-from .test_integration import setup
+from .test_integration import reconfigure, setup
 
 VALIDATE = "custom_components.soundbar_control.config_flow.validate_local"
 
@@ -173,3 +174,17 @@ async def test_validate_local_against_fake(hass, tmp_path, socket_enabled):
 async def test_validate_local_refused(hass, socket_enabled):
     with pytest.raises(ValueError, match="ip_control_disabled"):
         await validate_local(hass, "127.0.0.1", port=1)
+
+
+async def test_reconfigure_with_local_api_reloads(hass, parent, local_entry, dependencies, caplog):
+    await setup(hass, local_entry)
+    await hass.async_block_till_done(wait_background_tasks=True)
+    before = local_entry.runtime_data
+    result = await reconfigure(hass, local_entry, ["nightmode"])
+    await hass.async_block_till_done(wait_background_tasks=True)
+    assert result["reason"] == "reconfigure_successful"
+    assert local_entry.data["settings"] == ["nightmode"]
+    assert local_entry.state is ConfigEntryState.LOADED
+    assert local_entry.runtime_data is not before  # reloaded
+    assert local_entry.runtime_data.local is not None
+    assert "update listener" not in caplog.text

@@ -84,7 +84,10 @@ async def _async_options_updated(hass, entry: SoundbarConfigEntry):
     old, new = runtime.local_options, dict(entry.options)
     runtime.local_options = new
     if old == new:
-        return  # a data-only update (e.g. reconfigure), which reloads by itself
+        # HA only calls this when the entry changed, so the data changed
+        # (reconfigure): reload to apply the new controls.
+        hass.config_entries.async_schedule_reload(entry.entry_id)
+        return
     if {k: v for k, v in old.items() if k != CONF_HOST} == {
         k: v for k, v in new.items() if k != CONF_HOST
     }:

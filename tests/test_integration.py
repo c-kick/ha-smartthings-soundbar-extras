@@ -155,6 +155,27 @@ async def test_reconfigure_controls(hass, parent, entry, dependencies):
     assert entry.state is ConfigEntryState.LOADED
 
 
+async def reconfigure(hass, entry, settings):
+    result = await hass.config_entries.flow.async_init(
+        DOMAIN, context={"source": "reconfigure", "entry_id": entry.entry_id}
+    )
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"settings": settings}
+    )
+    await hass.async_block_till_done()
+    return result
+
+
+async def test_reconfigure_reloads_without_usage_warning(hass, parent, entry, dependencies, caplog):
+    await setup(hass, entry)
+    before = entry.runtime_data
+    result = await reconfigure(hass, entry, ["nightmode"])
+    assert result["reason"] == "reconfigure_successful"
+    assert entry.state is ConfigEntryState.LOADED
+    assert entry.runtime_data is not before  # reloaded
+    assert "update listener" not in caplog.text
+
+
 async def test_multiple_soundbars_require_explicit_service_target(
     hass, parent, entry, dependencies
 ):
