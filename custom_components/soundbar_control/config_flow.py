@@ -186,6 +186,7 @@ class LocalApiOptionsFlow(OptionsFlow):
         options = self.config_entry.options
         discovered = discovered_soundbars(self.hass)
         errors = {}
+        host = None
         if user_input is not None and CONF_HOST in user_input:
             host = str(user_input[CONF_HOST]).strip()
             try:
@@ -205,7 +206,10 @@ class LocalApiOptionsFlow(OptionsFlow):
                     CONF_POLL_OFF: int(user_input[CONF_POLL_OFF]),
                 }
                 return await self.async_step_confirm()
-        default_host = options.get(CONF_HOST) or next((ad.host for ad in discovered.values()), "")
+        # After a validation error, re-show the host the user typed.
+        default_host = (
+            host or options.get(CONF_HOST) or next((ad.host for ad in discovered.values()), "")
+        )
         return self.async_show_form(
             step_id="local",
             errors=errors,

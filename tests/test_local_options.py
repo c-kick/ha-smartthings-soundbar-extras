@@ -75,10 +75,13 @@ async def test_validation_errors(hass, parent, entry, dependencies, error):
     )
     with patch(VALIDATE, side_effect=ValueError(error)):
         result = await hass.config_entries.options.async_configure(
-            result["flow_id"], {"host": "192.0.2.10", "poll_on": 5, "poll_off": 60}
+            result["flow_id"], {"host": " 192.0.2.99 ", "poll_on": 5, "poll_off": 60}
         )
     assert result["errors"] == {"base": error}
     assert entry.options == {}
+    # The form re-shows what the user typed, not the stored or discovered host.
+    defaults = {str(key): key.default() for key in result["data_schema"].schema}
+    assert defaults["host"] == "192.0.2.99"
 
 
 async def test_disable_clears_options_and_issues(hass, parent, local_entry, dependencies):
