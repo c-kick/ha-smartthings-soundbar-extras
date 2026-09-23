@@ -52,6 +52,65 @@ Sources: [YASSI's OCF documentation](https://ha-samsung-soundbar.vercel.app/smar
 and authenticated read-only responses from `/v1/capabilities/samsungvd.audioInputSource/1`
 and `/v1/devices/{deviceId}/status`. No account-specific responses are bundled here.
 
+## Local API (IP Control)
+
+Live probes against the HW-Q930D, firmware 1072.1, on 2026-09-23, compared with
+what SmartThings reported at the same moment:
+
+| Method | Live result | SmartThings reported |
+| --- | --- | --- |
+| `getCodec` | `DTS` | not available |
+| `powerControl` (no params) | `powerOn` | `off` |
+| `inputSelectControl` (no params) | `E_ARC` | `D.IN` |
+| `soundModeControl` (no params) | `ADAPTIVE` | not available |
+| `getVolume` | `10` | `10` |
+| `getMute` | `false` | `muted` |
+| `getIdentifier` | `22_AV_HW-Q930D` | — |
+
+SmartThings was stale on three of these at the moment of the probe: it reported
+power `off` while the soundbar was locally reachable and answering (`powerOn`),
+input `D.IN` where the local read said `E_ARC`, and mute `muted` where the local
+read said `false`. This is exactly the gap the local entities close: they read the
+device directly instead of relying on SmartThings' last pushed event.
+
+A follow-up device check, soundbar in standby, confirmed writes and standby
+behavior:
+
+| Call | Live result |
+| --- | --- |
+| `volumeControl` `{"volume": 6}` (integer) | `{"success": true}` |
+| `muteControl` `{"mute": false}` (bool) | `{"success": true}` |
+| `inputSelectControl` `{"inputSource": "WIFI_SPOIFY"}` | `{"success": true}` |
+| `soundModeControl` `{"soundMode": "ADAPTIVE"}` | `{"success": true}` |
+| `powerControl` (standby) | `powerOff` |
+| `inputSelectControl` (standby, Spotify was last used) | `WIFI_SPOIFY` (the firmware's own spelling) |
+| `getCodec` (standby) | `UNKNOWN` |
+| `getVolume`, `getMute`, `soundModeControl` (standby) | read normally (`"6"`, `false`, `ADAPTIVE`) |
+
+All reads and writes work in standby, and a no-op write does not wake the soundbar.
+A successful write returns `{"success": true}`, never the new value, so the
+displayed state always comes from the refresh that follows a write. `UNKNOWN` is a
+valid codec string in standby and is shown as is. `WIFI_SPOIFY` is not a known
+input; it is added to the input selector's options as an observed value rather than
+corrected.
+
+Error replies are not JSON-RPC shaped. A bad token, an unknown method and a
+rejected call all return HTTP 200 with the same body:
+
+```json
+{"code": -32700, "message": "Parse error"}
+```
+
+There is no way to tell these three cases apart from the reply alone; the client
+treats any of them as a failure of that one call.
+
+AirPlay discovery (`_airplay._tcp.local.`) advertises these TXT fields, used to
+find the soundbar's current address and match it to a configured entry:
+
+- `deviceid`: the MAC address (`02:00:00:00:00:01` on the test unit)
+- `manufacturer`: `Samsung`
+- `model`: `HW-Q930D`
+
 Mode/channel implementation evidence:
 [YASSI SoundbarDevice.py, revision e8c5d38](https://github.com/samuelspagl/ha_samsung_soundbar/blob/e8c5d38fdec8426e992c1dfcb1f1f6d90124b25b/custom_components/samsung_soundbar/api_extension/SoundbarDevice.py),
 [speaker identifiers](https://github.com/samuelspagl/ha_samsung_soundbar/blob/e8c5d38fdec8426e992c1dfcb1f1f6d90124b25b/custom_components/samsung_soundbar/api_extension/const.py),

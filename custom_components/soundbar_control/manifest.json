@@ -8,7 +8,7 @@
   "integration_type": "device",
   "iot_class": "cloud_push",
   "issue_tracker": "https://github.com/c-kick/ha-smartthings-soundbar-extras/issues",
-  "version": "2.1.0",
+  "version": "2.2.0",
   "zeroconf": [
     {"type": "_airplay._tcp.local.", "properties": {"manufacturer": "samsung*"}}
   ]

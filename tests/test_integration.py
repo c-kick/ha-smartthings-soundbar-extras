@@ -99,6 +99,21 @@ async def test_diagnostics_exclude_credentials_and_identifiers(hass, parent, ent
     assert "test-token" not in str(diagnostics)
 
 
+async def test_local_diagnostics_exclude_address_and_pin(hass, parent, local_entry, dependencies):
+    await setup(hass, local_entry)
+    await hass.async_block_till_done(wait_background_tasks=True)
+    diagnostics = await async_get_config_entry_diagnostics(hass, local_entry)
+    local = diagnostics["local"]
+    assert local["enabled"] is True
+    assert local["cert_pinned"] is True
+    assert local["poll_on"] == 5
+    assert local["status"]["codec"] == "DTS"
+    assert local["status"]["failed"] == []
+    text = str(diagnostics)
+    for secret in ("192.0.2.10", "02:00:00", "AA:BB"):
+        assert secret not in text
+
+
 async def test_flow_selection_and_duplicate(hass, parent, dependencies):
     result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
     assert result["step_id"] == "user"

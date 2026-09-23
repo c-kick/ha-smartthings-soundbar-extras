@@ -39,6 +39,41 @@ Source control has a different limitation: the Q930D's cloud capability offers
 The source sensor can lag or remain stale if Samsung does not send an update;
 pressing the button does not make the integration guess the new input.
 
+## Local API (optional)
+
+HW-Q930D and other soundbars with Samsung's TLS-based IP Control (port 1516) can be
+polled directly, alongside the cloud connection. This adds six `(local)` entities —
+codec, input, sound mode, power, volume and mute — all read back from the device
+itself, not assumed. It also changes the cloud sound mode selector: once the local
+API confirms a reading, the selector shows that confirmed state instead of an assumed
+one, for its four cloud-settable modes.
+
+To enable it:
+
+1. In the SmartThings app, turn on IP control for the soundbar.
+2. Open the integration entry, choose **Configure**, and turn on **Use local API**.
+3. Pick the soundbar from the discovered list, or type its address, then set the
+   two polling intervals (defaults: 5 s while on, 60 s while off).
+
+Discovered addresses come from AirPlay advertisements the soundbar already sends.
+A later address change is only applied automatically when the new address presents
+the same pinned certificate; otherwise nothing changes and you re-open Configure.
+A DHCP reservation for the soundbar avoids address changes altogether.
+
+The connection is pinned to the soundbar's certificate fingerprint the first time
+it's confirmed. If the presented certificate ever changes, the local entities go
+unavailable and a repair issue appears; re-saving the local API settings under
+**Configure** trusts the new certificate. A second repair issue appears if
+SmartThings reports the soundbar online but the local API stops answering for
+30 minutes. Both issues clear automatically once a poll succeeds again, and are
+removed if you disable the local API or remove the entry.
+
+Standby readback works: with the soundbar off, the codec entity reads `UNKNOWN`,
+shown exactly as the device reports it, not blanked out.
+
+Night mode, voice amplifier, bass boost and the speaker levels have no local
+readback at all — they stay assumed-state, local API or not.
+
 ## Requirements and compatibility
 
 - Home Assistant **2026.9.0 or newer**. The test suite currently targets 2026.9.0.
@@ -122,8 +157,11 @@ need device IDs in their automation actions.
   select the replacement connection. Normal SmartThings reloads are handled automatically.
 
 Download diagnostics from the integration entry when reporting a problem. The
-diagnostics contain model, capability names, availability and assumed states; they
-exclude credentials, account information, device IDs and raw cloud responses.
+diagnostics contain model, capability names, availability and assumed states, plus
+a local section (enabled, whether a certificate is pinned, poll intervals, last
+error and last read status) when the local API is on. They exclude credentials,
+account information, device IDs, the soundbar's address, MAC and certificate
+fingerprint, and raw cloud responses.
 
 ## Further controls
 
