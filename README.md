@@ -55,6 +55,9 @@ After you change the mode with the cloud selector, it stays assumed for about
 2 seconds: SmartThings accepting the command doesn't mean the soundbar has applied
 it yet, so only a local reading taken after that settles the state.
 
+While the soundbar can't be reached over the local API, polling slows down to the
+off interval until it answers again.
+
 To enable it:
 
 1. In the SmartThings app, turn on IP control for the soundbar.
