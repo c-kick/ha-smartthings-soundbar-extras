@@ -35,7 +35,7 @@ KNOWN_SOUND_MODES = (
 )
 # Power first: a successful first read proves the token for the rest of the poll.
 FIELDS = ("power", "input", "sound_mode", "volume", "muted", "codec")
-_SAFE_TEXT = re.compile(r"[A-Za-z0-9_ .-]{1,64}")
+_SAFE_TEXT = re.compile(rf"[A-Za-z0-9_ .-]{{1,{MAX_TEXT}}}")
 
 
 class LocalApiException(Exception):
