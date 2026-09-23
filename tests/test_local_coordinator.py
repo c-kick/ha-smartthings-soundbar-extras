@@ -1,6 +1,7 @@
 """Local polling: isolation from the cloud, intervals, and repair issues."""
 
 import asyncio
+import logging
 from datetime import timedelta
 
 from homeassistant.config_entries import ConfigEntryState
@@ -178,3 +179,26 @@ async def test_certificate_failure_resets_unreachable_window(
     assert not ir.async_get(hass).async_get_issue(
         DOMAIN, issue_id("local_unreachable", local_entry.entry_id)
     )
+
+
+async def test_corrupt_local_options_leave_cloud_setup_intact(
+    hass, parent, entry, dependencies, caplog
+):
+    hass.config_entries.async_update_entry(
+        entry,
+        options={
+            "use_local_api": True,
+            "host": "192.0.2.10",
+            "cert_sha256": "not-hex",
+            "poll_on": 5,
+            "poll_off": 60,
+        },
+    )
+    await ready(hass, entry)
+    assert entry.state is ConfigEntryState.LOADED
+    assert entry.runtime_data.local is None
+    assert hass.states.get(night_mode(hass)).state != "unavailable"
+    logged = " ".join(r.getMessage() for r in caplog.records if r.levelno > logging.DEBUG)
+    assert "local API options are invalid" in logged
+    assert "192.0.2.10" not in logged
+    assert "not-hex" not in logged

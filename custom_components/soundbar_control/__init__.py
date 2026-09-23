@@ -1,5 +1,7 @@
 """SmartThings Soundbar Extras: a companion to the built-in integration."""
 
+import logging
+
 import voluptuous as vol
 from homeassistant.config_entries import ConfigEntry, ConfigEntryState
 from homeassistant.exceptions import (
@@ -16,6 +18,7 @@ from .local_api import LocalSoundbarClient
 from .profiles import EXTRA_CONTROLS, has_q930d_profile
 from .runtime import SoundbarRuntime
 
+_LOGGER = logging.getLogger(__name__)
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
 type SoundbarConfigEntry = ConfigEntry[SoundbarRuntime]
 
@@ -60,10 +63,20 @@ async def async_setup_entry(hass, entry: SoundbarConfigEntry):
     if runtime.adapter.device is None:
         raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="parent_not_loaded")
     if entry.options.get(CONF_USE_LOCAL):
-        client = LocalSoundbarClient(
-            async_get_clientsession(hass), entry.options[CONF_HOST], entry.options[CONF_CERT]
-        )
-        runtime.local = LocalCoordinator(hass, entry, runtime, client)
+        try:
+            client = LocalSoundbarClient(
+                async_get_clientsession(hass), entry.options[CONF_HOST], entry.options[CONF_CERT]
+            )
+            runtime.local = LocalCoordinator(hass, entry, runtime, client)
+        except KeyError, ValueError, TypeError:
+            # Never let broken local options take the cloud controls down. The values
+            # themselves (host, certificate) stay out of the log.
+            _LOGGER.warning(
+                "%s: the local API options are invalid; local entities are disabled. "
+                "Set up the local API again under Configure",
+                entry.title,
+            )
+            runtime.local = None
     runtime.local_options = dict(entry.options)
     entry.runtime_data = runtime
     runtime.bind()
