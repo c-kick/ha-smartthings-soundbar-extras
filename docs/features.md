@@ -94,6 +94,20 @@ valid codec string in standby and is shown as is. `WIFI_SPOIFY` is not a known
 input; it is added to the input selector's options as an observed value rather than
 corrected.
 
+Codec values seen by the deployed integration during an evening of normal use
+(2026-09-23, TV over e-ARC):
+
+| Codec | When |
+| --- | --- |
+| `DTS` | right after power-on |
+| `MAT_PCM_ATMOS` | Atmos content (Dolby MAT carrying Atmos over e-ARC) |
+| `MAT_PCM` | non-Atmos content over the same MAT link |
+| `PCM` | Bluetooth input |
+| `UNKNOWN` | standby |
+
+The codec follows the content within one polling interval. Over the whole evening
+the local input read `E_ARC` while SmartThings kept reporting `D.IN`.
+
 Error replies are not JSON-RPC shaped. A bad token, an unknown method and a
 rejected call all return HTTP 200 with the same body:
 
