@@ -79,6 +79,31 @@ async def test_local_failure_leaves_cloud_available(
     assert hass.states.get(night_mode(hass)).state != "unavailable"
 
 
+async def test_failure_backs_off_polling_until_it_recovers(
+    hass, parent, local_entry, local_client, dependencies
+):
+    await ready(hass, local_entry)
+    local = local_entry.runtime_data.local
+    assert local.update_interval == timedelta(seconds=5)
+    local_client.error = LocalApiUnreachable("down")
+    await local.async_refresh()
+    assert local.update_interval == timedelta(seconds=60)
+    local_client.error = None
+    local_client.value = status(power=True)
+    await local.async_refresh()
+    assert local.update_interval == timedelta(seconds=5)
+
+
+async def test_certificate_failure_backs_off_polling(
+    hass, parent, local_entry, local_client, dependencies
+):
+    await ready(hass, local_entry)
+    local = local_entry.runtime_data.local
+    local_client.error = LocalApiCertificateChanged("changed")
+    await local.async_refresh()
+    assert local.update_interval == timedelta(seconds=60)
+
+
 async def test_certificate_change_raises_issue(
     hass, parent, local_entry, local_client, dependencies
 ):

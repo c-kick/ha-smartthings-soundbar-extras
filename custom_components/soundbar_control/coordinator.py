@@ -61,10 +61,12 @@ class LocalCoordinator(DataUpdateCoordinator[LocalStatus]):
             )
             # A different problem with its own issue; not part of the unreachable window.
             self._failing_since = None
+            self.update_interval = self._poll_off
             raise UpdateFailed("certificate changed") from err
         except LocalApiException as err:
             self.last_error = type(err).__name__
             self._track_failure()
+            self.update_interval = self._poll_off
             raise UpdateFailed(type(err).__name__) from err
         self.last_error = None
         self._failing_since = None
