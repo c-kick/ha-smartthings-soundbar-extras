@@ -5,11 +5,14 @@ from homeassistant.const import STATE_OFF, STATE_ON
 
 from .const import SETTINGS
 from .entity import RestoredAssumedEntity
+from .local_entity import LocalEntity
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
     runtime = entry.runtime_data
     async_add_entities(SoundbarSwitch(runtime, key) for key in SETTINGS if runtime.enabled(key))
+    if runtime.local is not None:
+        async_add_entities([LocalPowerSwitch(runtime, "power"), LocalMuteSwitch(runtime, "mute")])
 
 
 class SoundbarSwitch(RestoredAssumedEntity, SwitchEntity):
@@ -30,3 +33,31 @@ class SoundbarSwitch(RestoredAssumedEntity, SwitchEntity):
 
     async def async_turn_off(self, **kwargs):
         await self.runtime.set(self.key, False)
+
+
+class LocalPowerSwitch(LocalEntity, SwitchEntity):
+    field = "power"
+
+    @property
+    def is_on(self):
+        return self.value
+
+    async def async_turn_on(self, **kwargs):
+        await self.write(self.coordinator.client.set_power(True))
+
+    async def async_turn_off(self, **kwargs):
+        await self.write(self.coordinator.client.set_power(False))
+
+
+class LocalMuteSwitch(LocalEntity, SwitchEntity):
+    field = "muted"
+
+    @property
+    def is_on(self):
+        return self.value
+
+    async def async_turn_on(self, **kwargs):
+        await self.write(self.coordinator.client.set_mute(True))
+
+    async def async_turn_off(self, **kwargs):
+        await self.write(self.coordinator.client.set_mute(False))

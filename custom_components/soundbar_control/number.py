@@ -1,15 +1,20 @@
 """Individual assumed speaker levels; unknown is not silently initialized to zero."""
 
-from homeassistant.components.number import NumberMode, RestoreNumber
+from homeassistant.components.number import NumberEntity, NumberMode, RestoreNumber
 from homeassistant.const import UnitOfSoundPressure
+from homeassistant.exceptions import ServiceValidationError
 
+from .const import DOMAIN
 from .entity import SoundbarEntity
+from .local_entity import LocalEntity
 from .profiles import LEVELS, MAX_LEVEL, MIN_LEVEL, valid_level
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
     runtime = entry.runtime_data
     async_add_entities(SpeakerLevelNumber(runtime, key) for key in LEVELS if runtime.enabled(key))
+    if runtime.local is not None:
+        async_add_entities([LocalVolumeNumber(runtime, "volume")])
 
 
 class SpeakerLevelNumber(SoundbarEntity, RestoreNumber):
@@ -33,3 +38,22 @@ class SpeakerLevelNumber(SoundbarEntity, RestoreNumber):
 
     async def async_set_native_value(self, value: float):
         await self.runtime.set_level(self.key, value)
+
+
+class LocalVolumeNumber(LocalEntity, NumberEntity):
+    field = "volume"
+    _attr_native_min_value = 0
+    _attr_native_max_value = 100
+    _attr_native_step = 1
+    _attr_mode = NumberMode.SLIDER
+
+    @property
+    def native_value(self):
+        return self.value
+
+    async def async_set_native_value(self, value: float) -> None:
+        if value != int(value):
+            raise ServiceValidationError(
+                translation_domain=DOMAIN, translation_key="invalid_volume"
+            )
+        await self.write(self.coordinator.client.set_volume(int(value)))

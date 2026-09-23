@@ -59,18 +59,27 @@
     "switch": {
       "nightmode": {"name": "Night mode"},
       "voiceamplifier": {"name": "Voice amplifier"},
-      "bassboost": {"name": "Bass boost"}
+      "bassboost": {"name": "Bass boost"},
+      "power_local": {"name": "Power (local)"},
+      "mute_local": {"name": "Mute (local)"}
     },
     "button": {"next_source": {"name": "Next input source"}},
-    "sensor": {"input_source": {"name": "Reported input source"}},
+    "sensor": {
+      "input_source": {"name": "Reported input source"},
+      "audio_codec_local": {"name": "Audio codec (local)"}
+    },
     "select": {"sound_mode": {"name": "Sound mode", "state": {
       "standard": "Standard", "surround": "Surround", "game": "Game Pro", "adaptive": "Adaptive Sound"
-    }}},
+    }},
+      "input_local": {"name": "Input (local)"},
+      "sound_mode_local": {"name": "Sound mode (local)"}
+    },
     "number": {
       "woofer_level": {"name": "Woofer level"}, "center_level": {"name": "Center level"},
       "side_level": {"name": "Side level"}, "wide_level": {"name": "Wide level"},
       "front_top_level": {"name": "Front top level"}, "rear_level": {"name": "Rear level"},
-      "rear_top_level": {"name": "Rear top level"}
+      "rear_top_level": {"name": "Rear top level"},
+      "volume_local": {"name": "Volume (local)"}
     }
   },
   "services": {"set": {
@@ -99,6 +108,9 @@
     "choose_device": {"message": "Select one configured soundbar using its SmartThings device ID."},
     "setting_disabled": {"message": "This audio control is not enabled for this soundbar."},
     "invalid_sound_mode": {"message": "Choose Standard, Surround, Game Pro, or Adaptive Sound."},
-    "invalid_level": {"message": "Choose a whole-number speaker level from -6 to +6 dB."}
+    "invalid_level": {"message": "Choose a whole-number speaker level from -6 to +6 dB."},
+    "local_unavailable": {"message": "The soundbar's local API is unavailable."},
+    "local_rejected": {"message": "The soundbar rejected this command. It may not be supported by this soundbar."},
+    "invalid_volume": {"message": "Choose a whole-number volume from 0 to 100."}
   }
 }

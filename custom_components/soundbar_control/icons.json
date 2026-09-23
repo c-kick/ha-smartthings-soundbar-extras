@@ -3,16 +3,26 @@
     "switch": {
       "nightmode": {"default": "mdi:weather-night"},
       "voiceamplifier": {"default": "mdi:account-voice"},
-      "bassboost": {"default": "mdi:speaker"}
+      "bassboost": {"default": "mdi:speaker"},
+      "power_local": {"default": "mdi:power"},
+      "mute_local": {"default": "mdi:volume-off"}
     },
     "button": {"next_source": {"default": "mdi:video-input-hdmi"}},
-    "sensor": {"input_source": {"default": "mdi:audio-input-rca"}},
-    "select": {"sound_mode": {"default": "mdi:surround-sound"}},
+    "sensor": {
+      "input_source": {"default": "mdi:audio-input-rca"},
+      "audio_codec_local": {"default": "mdi:waveform"}
+    },
+    "select": {
+      "sound_mode": {"default": "mdi:surround-sound"},
+      "input_local": {"default": "mdi:video-input-hdmi"},
+      "sound_mode_local": {"default": "mdi:surround-sound"}
+    },
     "number": {
       "woofer_level": {"default": "mdi:speaker"}, "center_level": {"default": "mdi:surround-sound"},
       "side_level": {"default": "mdi:surround-sound"}, "wide_level": {"default": "mdi:surround-sound"},
       "front_top_level": {"default": "mdi:surround-sound"}, "rear_level": {"default": "mdi:surround-sound"},
-      "rear_top_level": {"default": "mdi:surround-sound"}
+      "rear_top_level": {"default": "mdi:surround-sound"},
+      "volume_local": {"default": "mdi:volume-high"}
     }
   }
 }

@@ -10,7 +10,13 @@ COMPONENT = ROOT / "custom_components" / "soundbar_control"
 def test_translations_match_and_contain_all_entities():
     strings = json.loads((COMPONENT / "strings.json").read_text())
     assert json.loads((COMPONENT / "translations" / "en.json").read_text()) == strings
-    assert set(strings["entity"]["switch"]) == {"nightmode", "voiceamplifier", "bassboost"}
+    assert set(strings["entity"]["switch"]) == {
+        "nightmode",
+        "voiceamplifier",
+        "bassboost",
+        "power_local",
+        "mute_local",
+    }
 
 
 def test_manifest_and_hacs():
