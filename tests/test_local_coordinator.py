@@ -133,3 +133,48 @@ async def test_unreachable_issue_needs_smartthings_online(
     assert not ir.async_get(hass).async_get_issue(
         DOMAIN, issue_id("local_unreachable", local_entry.entry_id)
     )
+
+
+async def test_unreachable_window_starts_when_smartthings_is_online(
+    hass, parent, local_entry, local_client, dependencies
+):
+    """An unplugged soundbar that comes back doesn't count its offline failures."""
+    await ready(hass, local_entry)
+    local = local_entry.runtime_data.local
+    now = [1000.0]
+    local._clock = lambda: now[0]
+    unreachable = issue_id("local_unreachable", local_entry.entry_id)
+    registry = ir.async_get(hass)
+    client = parent.runtime_data.client
+    fire(client, "DEVICE_HEALTH_EVENT", status="OFFLINE")
+    local_client.error = LocalApiUnreachable("unplugged")
+    for _ in range(4):
+        await local.async_refresh()
+        now[0] += UNREACHABLE_AFTER
+
+    fire(client, "DEVICE_HEALTH_EVENT", status="ONLINE")
+    await local.async_refresh()
+    assert not registry.async_get_issue(DOMAIN, unreachable)
+
+    now[0] += UNREACHABLE_AFTER
+    await local.async_refresh()
+    assert registry.async_get_issue(DOMAIN, unreachable)
+
+
+async def test_certificate_failure_resets_unreachable_window(
+    hass, parent, local_entry, local_client, dependencies
+):
+    await ready(hass, local_entry)
+    local = local_entry.runtime_data.local
+    now = [1000.0]
+    local._clock = lambda: now[0]
+    local_client.error = LocalApiUnreachable("down")
+    await local.async_refresh()
+    now[0] += UNREACHABLE_AFTER
+    local_client.error = LocalApiCertificateChanged("changed")
+    await local.async_refresh()
+    local_client.error = LocalApiUnreachable("down")
+    await local.async_refresh()
+    assert not ir.async_get(hass).async_get_issue(
+        DOMAIN, issue_id("local_unreachable", local_entry.entry_id)
+    )

@@ -59,6 +59,8 @@ class LocalCoordinator(DataUpdateCoordinator[LocalStatus]):
                 translation_key=ISSUE_CERT,
                 translation_placeholders={"name": entry.title},
             )
+            # A different problem with its own issue; not part of the unreachable window.
+            self._failing_since = None
             raise UpdateFailed("certificate changed") from err
         except LocalApiException as err:
             self.last_error = type(err).__name__
@@ -71,12 +73,16 @@ class LocalCoordinator(DataUpdateCoordinator[LocalStatus]):
         return status
 
     def _track_failure(self) -> None:
+        # The window counts only failures while SmartThings says the soundbar is
+        # online: then a silent local API means a wrong address or IP control switched
+        # off, not a soundbar that's unplugged.
+        if not self.runtime.online:
+            self._failing_since = None
+            return
         now = self._clock()
         if self._failing_since is None:
             self._failing_since = now
-        # Only while SmartThings says the soundbar is online: then a silent local API
-        # means a wrong address or IP control switched off, not a soundbar that's off.
-        if now - self._failing_since >= UNREACHABLE_AFTER and self.runtime.online:
+        if now - self._failing_since >= UNREACHABLE_AFTER:
             entry = self.config_entry
             ir.async_create_issue(
                 self.hass,
