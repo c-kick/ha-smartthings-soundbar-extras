@@ -46,7 +46,14 @@ polled directly, alongside the cloud connection. This adds six `(local)` entitie
 codec, input, sound mode, power, volume and mute — all read back from the device
 itself, not assumed. It also changes the cloud sound mode selector: once the local
 API confirms a reading, the selector shows that confirmed state instead of an assumed
-one, for its four cloud-settable modes.
+one. The selector can set only the four cloud-settable modes (`standard`,
+`surround`, `game` and `adaptive`). Other modes the soundbar reports, such as
+`MUSIC`, are shown in the selector too, but can only be set with
+**Sound mode (local)**.
+
+After you change the mode with the cloud selector, it stays assumed for about
+2 seconds: SmartThings accepting the command doesn't mean the soundbar has applied
+it yet, so only a local reading taken after that settles the state.
 
 To enable it:
 
