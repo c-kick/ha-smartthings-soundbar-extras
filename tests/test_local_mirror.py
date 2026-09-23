@@ -139,3 +139,25 @@ async def test_extra_options_restored(hass, parent, audio_local_entry, dependenc
     options = hass.states.get(eid).attributes["options"]
     assert "MUSIC" in options
     assert "a;b" not in options
+
+
+async def test_legacy_restore_without_local_data(
+    hass, parent, audio_local_entry, local_client, dependencies
+):
+    """2.1 stored only the assumed value; restore it while local data is pending."""
+    local_client.gate = asyncio.Event()  # the first local reading never finishes here
+    registry = er.async_get(hass)
+    eid = registry.async_get_or_create(
+        "select", DOMAIN, f"{DEVICE}_sound_mode", config_entry=audio_local_entry
+    ).entity_id
+    mock_restore_cache_with_extra_data(
+        hass, [(State(eid, "surround"), {"assumed_value": "surround"})]
+    )
+    await setup(hass, audio_local_entry)
+    assert audio_local_entry.runtime_data.local.data is None
+    state = hass.states.get(eid)
+    assert state.state == "surround"
+    assert state.attributes["assumed_state"] is True
+    assert state.attributes["options"] == ["standard", "surround", "game", "adaptive"]
+    local_client.gate.set()
+    await hass.async_block_till_done(wait_background_tasks=True)
