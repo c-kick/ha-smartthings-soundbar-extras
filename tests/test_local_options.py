@@ -12,7 +12,7 @@ from custom_components.soundbar_control.const import DOMAIN
 from custom_components.soundbar_control.coordinator import issue_id
 from custom_components.soundbar_control.discovery import Advertised, discovered_soundbars
 
-from .local_fake import FakeSoundbar
+from .local_fake import GENERIC_ERROR, FakeSoundbar
 from .test_integration import reconfigure, setup
 
 VALIDATE = "custom_components.soundbar_control.config_flow.validate_local"
@@ -177,6 +177,28 @@ async def test_validate_local_against_fake(hass, tmp_path, socket_enabled):
 async def test_validate_local_refused(hass, socket_enabled):
     with pytest.raises(ValueError, match="ip_control_disabled"):
         await validate_local(hass, "127.0.0.1", port=1)
+
+
+async def test_validate_local_token_rejected(hass, tmp_path, socket_enabled):
+    bar = FakeSoundbar(tmp_path)
+    await bar.start()
+    try:
+        bar.raw["createAccessToken"] = GENERIC_ERROR
+        with pytest.raises(ValueError, match="ip_control_disabled"):
+            await validate_local(hass, "127.0.0.1", port=bar.port)
+    finally:
+        await bar.stop()
+
+
+async def test_validate_local_garbled_reply_is_not_a_soundbar(hass, tmp_path, socket_enabled):
+    bar = FakeSoundbar(tmp_path)
+    await bar.start()
+    try:
+        bar.raw["getIdentifier"] = {"jsonrpc": "2.0", "result": "x"}
+        with pytest.raises(ValueError, match="not_a_soundbar"):
+            await validate_local(hass, "127.0.0.1", port=bar.port)
+    finally:
+        await bar.stop()
 
 
 async def test_reconfigure_with_local_api_reloads(hass, parent, local_entry, dependencies, caplog):

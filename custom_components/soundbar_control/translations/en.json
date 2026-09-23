@@ -46,7 +46,7 @@
     "error": {
       "cannot_connect": "Could not reach the soundbar at this address.",
       "ip_control_disabled": "The soundbar refused the connection. Enable IP control in the SmartThings app and try again.",
-      "not_a_soundbar": "The device at this address is not a Samsung soundbar."
+      "not_a_soundbar": "The device at this address did not answer like a Samsung soundbar."
     }
   },
   "selector": {"settings": {"options": {

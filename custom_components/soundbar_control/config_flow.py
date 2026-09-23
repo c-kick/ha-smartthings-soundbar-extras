@@ -24,6 +24,7 @@ from .local_api import (
     LOCAL_PORT,
     LocalApiException,
     LocalApiRefused,
+    LocalApiTokenRejected,
     LocalApiUnreachable,
     LocalSoundbarClient,
     fetch_certificate_sha256,
@@ -141,9 +142,12 @@ async def validate_local(hass, host: str, port: int = LOCAL_PORT) -> tuple[str, 
         raise ValueError("ip_control_disabled") from err
     except LocalApiUnreachable as err:
         raise ValueError("cannot_connect") from err
-    except LocalApiException as err:
-        # Answered, but rejected the token or the call.
+    except LocalApiTokenRejected as err:
         raise ValueError("ip_control_disabled") from err
+    except LocalApiException as err:
+        # Answered, but not like a soundbar: a garbled or rejected reply, or the
+        # certificate changed mid-flow.
+        raise ValueError("not_a_soundbar") from err
     if "HW-" not in identifier.upper():
         raise ValueError("not_a_soundbar")
     return identifier, sha
