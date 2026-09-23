@@ -8,7 +8,7 @@ from homeassistant.core import callback
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.restore_state import ExtraStoredData
 
-from .const import DOMAIN
+from .const import DOMAIN, SOUND_MODE_SETTLE
 from .entity import RestoredAssumedEntity
 from .local_api import KNOWN_INPUTS, KNOWN_SOUND_MODES
 from .local_entity import MAX_OBSERVED, LocalChoiceSelect, restore_observed
@@ -51,14 +51,15 @@ class SoundModeSelect(RestoredAssumedEntity, SelectEntity):
         self._extra_options: list[str] = []
 
     def _confirmed(self) -> str | None:
-        """The local mode, if a reading newer than the last cloud command confirms it."""
+        """The local mode, if a reading started after the last cloud command settled."""
         local = self.runtime.local
         if local is None or not local.last_update_success or local.data is None:
             return None
         data = local.data
         if "sound_mode" in data.failed or data.sound_mode is None:
             return None
-        if data.read_started <= self.runtime.sound_mode_commanded:
+        # SmartThings accepting a command doesn't mean the soundbar applied it yet.
+        if data.read_started <= self.runtime.sound_mode_commanded + SOUND_MODE_SETTLE:
             return None
         return data.sound_mode
 

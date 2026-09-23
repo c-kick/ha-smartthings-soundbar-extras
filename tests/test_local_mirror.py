@@ -1,15 +1,20 @@
 """The cloud sound-mode select shows confirmed local readback, with correct ordering."""
 
 import asyncio
+from datetime import timedelta
 from unittest.mock import AsyncMock, patch
 
 import pytest
 from homeassistant.core import State
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers import entity_registry as er
-from pytest_homeassistant_custom_component.common import mock_restore_cache_with_extra_data
+from homeassistant.util import dt as dt_util
+from pytest_homeassistant_custom_component.common import (
+    async_fire_time_changed,
+    mock_restore_cache_with_extra_data,
+)
 
-from custom_components.soundbar_control.const import DOMAIN
+from custom_components.soundbar_control.const import DOMAIN, SOUND_MODE_SETTLE
 from custom_components.soundbar_control.profiles import EXTRA_CONTROLS
 
 from .conftest import DEVICE
@@ -96,7 +101,8 @@ async def test_older_reading_does_not_confirm_after_cloud_command(
     state = hass.states.get(eid)
     assert state.state == "surround"  # the commanded value, not the older "standard"
     assert state.attributes["assumed_state"] is True
-    # The next poll starts after the command, so it confirms.
+    # The next poll starts after the command and its settle margin, so it confirms.
+    runtime.sound_mode_commanded -= SOUND_MODE_SETTLE  # the margin has passed
     local_client.gate = None
     local_client.value = status(sound_mode="SURROUND")
     await runtime.local.async_refresh()
@@ -106,7 +112,9 @@ async def test_older_reading_does_not_confirm_after_cloud_command(
     assert "assumed_state" not in state.attributes
 
 
-async def test_cloud_command_requests_local_refresh(hass, parent, audio_local_entry, dependencies):
+async def test_cloud_command_requests_local_refresh_after_settling(
+    hass, parent, audio_local_entry, dependencies
+):
     await ready(hass, audio_local_entry)
     runtime = audio_local_entry.runtime_data
     with (
@@ -118,7 +126,50 @@ async def test_cloud_command_requests_local_refresh(hass, parent, audio_local_en
             {"entity_id": cloud_select(hass), "option": "game"}, blocking=True,
         )  # fmt: skip
         await hass.async_block_till_done(wait_background_tasks=True)
-    refresh.assert_awaited()
+        refresh.assert_not_awaited()  # SmartThings accepted it; the soundbar may not have yet
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=SOUND_MODE_SETTLE + 1))
+        await hass.async_block_till_done(wait_background_tasks=True)
+    refresh.assert_awaited_once()
+
+
+async def test_reading_within_settle_margin_does_not_confirm(
+    hass, parent, audio_local_entry, local_client, dependencies
+):
+    await ready(hass, audio_local_entry)
+    runtime = audio_local_entry.runtime_data
+    eid = cloud_select(hass)
+    with patch.object(runtime.adapter, "command", new_callable=AsyncMock):
+        await hass.services.async_call(
+            "select", "select_option", {"entity_id": eid, "option": "surround"}, blocking=True
+        )
+    # The soundbar hasn't applied it yet; a reading right after the command says so.
+    local_client.value = status(sound_mode="STANDARD")
+    await runtime.local.async_refresh()
+    await hass.async_block_till_done()
+    assert runtime.local.data.read_started > runtime.sound_mode_commanded
+    state = hass.states.get(eid)
+    assert state.state == "surround"
+    assert state.attributes["assumed_state"] is True
+    assert runtime.states["sound_mode"] == "surround"
+
+
+async def test_settle_refresh_never_fires_after_unload(
+    hass, parent, audio_local_entry, dependencies
+):
+    await ready(hass, audio_local_entry)
+    runtime = audio_local_entry.runtime_data
+    with (
+        patch.object(runtime.adapter, "command", new_callable=AsyncMock),
+        patch.object(runtime.local, "async_request_refresh", new_callable=AsyncMock) as refresh,
+    ):
+        await hass.services.async_call(
+            "select", "select_option",
+            {"entity_id": cloud_select(hass), "option": "game"}, blocking=True,
+        )  # fmt: skip
+        assert await hass.config_entries.async_unload(audio_local_entry.entry_id)
+        async_fire_time_changed(hass, dt_util.utcnow() + timedelta(seconds=SOUND_MODE_SETTLE + 1))
+        await hass.async_block_till_done(wait_background_tasks=True)
+    refresh.assert_not_awaited()
 
 
 async def test_extra_options_restored(hass, parent, audio_local_entry, dependencies):

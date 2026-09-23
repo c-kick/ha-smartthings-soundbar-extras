@@ -80,7 +80,7 @@ async def async_setup_entry(hass, entry: SoundbarConfigEntry):
     runtime.local_options = dict(entry.options)
     entry.runtime_data = runtime
     runtime.bind()
-    entry.async_on_unload(runtime.close)
+    entry.async_on_unload(runtime.unload)
     entry.async_on_unload(runtime.adapter.parent.async_on_state_change(runtime.bind))
     entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)

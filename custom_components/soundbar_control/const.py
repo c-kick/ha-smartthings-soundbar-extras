@@ -19,3 +19,6 @@ DEFAULT_POLL_ON = 5
 DEFAULT_POLL_OFF = 60
 ISSUE_CERT = "certificate_changed"
 ISSUE_UNREACHABLE = "local_unreachable"
+# SmartThings accepting a sound-mode command doesn't mean the soundbar applied it:
+# only a local reading started this long after the command confirms the mode.
+SOUND_MODE_SETTLE = 2.0

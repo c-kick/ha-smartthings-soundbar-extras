@@ -3,10 +3,11 @@
 import asyncio
 import time
 
-from homeassistant.core import callback
+from homeassistant.core import CALLBACK_TYPE, callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
+from homeassistant.helpers.event import async_call_later
 
-from .const import DOMAIN, PREFIX, SOURCE_CAPABILITY
+from .const import DOMAIN, PREFIX, SOUND_MODE_SETTLE, SOURCE_CAPABILITY
 from .profiles import CHANNELS, LEVELS, SOUND_MODES, available_controls, valid_level
 from .smartthings import SmartThingsAdapter
 
@@ -33,8 +34,9 @@ class SoundbarRuntime:
         self.local = None
         self.local_options: dict = {}
         # When the last cloud sound-mode command was accepted. A local reading only
-        # confirms the mode if it started later.
+        # confirms the mode if it started more than SOUND_MODE_SETTLE later.
         self.sound_mode_commanded = 0.0
+        self._settle_refresh: CALLBACK_TYPE | None = None
 
     @property
     def available(self):
@@ -76,6 +78,32 @@ class SoundbarRuntime:
         for unsub in self._unsub:
             unsub()
         self._unsub = []
+
+    @callback
+    def unload(self):
+        """Entry unload: also drop a pending post-command local refresh."""
+        self.close()
+        self._cancel_settle_refresh()
+
+    @callback
+    def _cancel_settle_refresh(self):
+        if self._settle_refresh is not None:
+            self._settle_refresh()
+            self._settle_refresh = None
+
+    @callback
+    def _refresh_after_settling(self):
+        self._cancel_settle_refresh()
+        # Slightly past the margin, so the reading starts after it.
+        self._settle_refresh = async_call_later(self.hass, SOUND_MODE_SETTLE + 0.1, self._settled)
+
+    @callback
+    def _settled(self, _now):
+        self._settle_refresh = None
+        if self.local is not None:
+            self.entry.async_create_background_task(
+                self.hass, self.local.async_request_refresh(), f"{DOMAIN} local refresh"
+            )
 
     @callback
     def _source_event(self, event):
@@ -146,6 +174,4 @@ class SoundbarRuntime:
                 self.states[key] = value
                 self.notify()
         if key == "sound_mode" and self.local is not None:
-            self.entry.async_create_background_task(
-                self.hass, self.local.async_request_refresh(), f"{DOMAIN} local refresh"
-            )
+            self._refresh_after_settling()
