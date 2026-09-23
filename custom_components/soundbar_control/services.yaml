@@ -1,0 +1,17 @@
+set:
+  fields:
+    device_id:
+      selector:
+        text:
+    setting:
+      required: true
+      selector:
+        select:
+          options:
+            - nightmode
+            - voiceamplifier
+            - bassboost
+    enabled:
+      required: true
+      selector:
+        boolean:

@@ -1,0 +1,12 @@
+{
+  "domain": "soundbar_control",
+  "name": "SmartThings Soundbar Extras",
+  "version": "2.1.0",
+  "config_flow": true,
+  "dependencies": ["smartthings"],
+  "codeowners": ["@c-kick"],
+  "documentation": "https://github.com/c-kick/ha-smartthings-soundbar-extras",
+  "issue_tracker": "https://github.com/c-kick/ha-smartthings-soundbar-extras/issues",
+  "integration_type": "device",
+  "iot_class": "cloud_push"
+}

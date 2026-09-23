@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+set -euo pipefail
+project_dir="$(cd "$(dirname "$0")/.." && pwd)"
+exec systemd-run --user --wait --pipe --collect \
+  -p MemoryMax=1536M -p MemorySwapMax=0 -p TasksMax=128 -p RuntimeMaxSec=180 \
+  --working-directory="$project_dir" \
+  "$project_dir/.venv/bin/python" -m pytest "$@"

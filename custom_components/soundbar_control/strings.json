@@ -1,0 +1,66 @@
+{
+  "title": "SmartThings Soundbar Extras",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Choose your soundbar",
+        "description": "Uses your existing SmartThings connection. No extra login or token is needed.",
+        "data": {"device": "Soundbar"}
+      },
+      "features": {
+        "title": "Choose advanced audio controls",
+        "description": "Enable settings your soundbar supports in the SmartThings app. HW-Q930D also offers sound modes and individual speaker levels. These controls remember the last accepted command; they cannot detect remote or app changes. Source controls are added when advertised by the device.",
+        "data": {"settings": "Audio controls"}
+      }
+    },
+    "error": {"device_unavailable": "This soundbar is no longer available. Check SmartThings and try again."},
+    "abort": {
+      "already_configured": "This soundbar is already configured.",
+      "no_soundbars": "No compatible soundbars found. Set up the built-in SmartThings integration first and check that your soundbar is available.",
+      "invalid_settings": "An unsupported audio setting was selected.",
+      "reconfigure_successful": "Audio controls updated."
+    }
+  },
+  "selector": {"settings": {"options": {
+    "nightmode": "Night mode", "voiceamplifier": "Voice amplifier", "bassboost": "Bass boost",
+    "sound_mode": "Sound mode", "woofer_level": "Woofer level",
+    "center_level": "Center level", "side_level": "Side level", "wide_level": "Wide level",
+    "front_top_level": "Front top level", "rear_level": "Rear level", "rear_top_level": "Rear top level"
+  }}},
+  "entity": {
+    "switch": {
+      "nightmode": {"name": "Night mode"},
+      "voiceamplifier": {"name": "Voice amplifier"},
+      "bassboost": {"name": "Bass boost"}
+    },
+    "button": {"next_source": {"name": "Next input source"}},
+    "sensor": {"input_source": {"name": "Reported input source"}},
+    "select": {"sound_mode": {"name": "Sound mode", "state": {
+      "standard": "Standard", "surround": "Surround", "game": "Game Pro", "adaptive": "Adaptive Sound"
+    }}},
+    "number": {
+      "woofer_level": {"name": "Woofer level"}, "center_level": {"name": "Center level"},
+      "side_level": {"name": "Side level"}, "wide_level": {"name": "Wide level"},
+      "front_top_level": {"name": "Front top level"}, "rear_level": {"name": "Rear level"},
+      "rear_top_level": {"name": "Rear top level"}
+    }
+  },
+  "services": {"set": {
+    "name": "Set advanced audio",
+    "description": "Send an advanced audio setting. Prefer the native switch entities for automations.",
+    "fields": {
+      "setting": {"name": "Setting"}, "enabled": {"name": "Enabled"},
+      "device_id": {"name": "SmartThings device ID", "description": "Required when more than one soundbar is configured."}
+    }
+  }},
+  "exceptions": {
+    "parent_removed": {"message": "The SmartThings integration this soundbar was set up with no longer exists. Remove this entry and add the soundbar again."},
+    "parent_not_loaded": {"message": "The SmartThings integration or this soundbar is not loaded yet."},
+    "smartthings_unavailable": {"message": "The soundbar or its SmartThings connection is unavailable."},
+    "command_failed": {"message": "SmartThings did not confirm command acceptance. The assumed state has not been changed."},
+    "choose_device": {"message": "Select one configured soundbar using its SmartThings device ID."},
+    "setting_disabled": {"message": "This audio control is not enabled for this soundbar."},
+    "invalid_sound_mode": {"message": "Choose Standard, Surround, Game Pro, or Adaptive Sound."},
+    "invalid_level": {"message": "Choose a whole-number speaker level from -6 to +6 dB."}
+  }
+}
