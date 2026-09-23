@@ -8,13 +8,14 @@ from custom_components.soundbar_control.local_api import (
     LocalApiCertificateChanged,
     LocalApiError,
     LocalApiRefused,
+    LocalApiTokenRejected,
     LocalApiUnreachable,
     LocalSoundbarClient,
     fetch_certificate_sha256,
     valid_value,
 )
 
-from .local_fake import FakeSoundbar, make_certificate
+from .local_fake import GENERIC_ERROR, FakeSoundbar, make_certificate
 
 
 @pytest.fixture
@@ -135,6 +136,18 @@ async def test_unreachable(session, socket_enabled):
     client = LocalSoundbarClient(session, "127.0.0.1", "AA" * 32, port=1)
     with pytest.raises(LocalApiUnreachable):
         await client.status()
+
+
+async def test_closed_port_raises_refused_specifically(session, socket_enabled):
+    client = LocalSoundbarClient(session, "127.0.0.1", "AA" * 32, port=1)
+    with pytest.raises(LocalApiRefused):
+        await client.status()
+
+
+async def test_rejected_token_raises_token_rejected(session, bar):
+    bar.raw["createAccessToken"] = GENERIC_ERROR
+    with pytest.raises(LocalApiTokenRejected):
+        await client_for(session, bar).identify()
 
 
 @pytest.mark.parametrize(

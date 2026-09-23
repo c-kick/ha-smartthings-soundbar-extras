@@ -58,6 +58,10 @@ class LocalApiError(LocalApiException):
     """The soundbar answered, but rejected the call or sent something unexpected."""
 
 
+class LocalApiTokenRejected(LocalApiError):
+    """The soundbar refused to issue an access token: IP control is probably disabled."""
+
+
 @dataclass(frozen=True)
 class LocalStatus:
     power: bool | None
@@ -158,9 +162,12 @@ class LocalSoundbarClient:
         return result
 
     async def _new_token(self) -> None:
-        token = (await self._post("createAccessToken")).get("AccessToken")
+        try:
+            token = (await self._post("createAccessToken")).get("AccessToken")
+        except LocalApiError as err:
+            raise LocalApiTokenRejected(str(err)) from err
         if not isinstance(token, str) or not 0 < len(token) <= 512:
-            raise LocalApiError("no access token")
+            raise LocalApiTokenRejected("no access token")
         self._token = token
         self._token_ok_at = 0.0
 
