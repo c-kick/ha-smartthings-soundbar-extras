@@ -5,6 +5,7 @@ from homeassistant.config_entries import ConfigFlow, OptionsFlow
 from homeassistant.core import callback
 from homeassistant.helpers import selector
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+from homeassistant.helpers.service_info.zeroconf import ZeroconfServiceInfo
 
 from .const import (
     CONF_CERT,
@@ -18,7 +19,7 @@ from .const import (
     DOMAIN,
 )
 from .coordinator import delete_local_issues
-from .discovery import discovered_soundbars
+from .discovery import async_check_address, discovered_soundbars, remember
 from .local_api import (
     LOCAL_PORT,
     LocalApiException,
@@ -41,6 +42,23 @@ class SoundbarControlConfigFlow(ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         return LocalApiOptionsFlow()
+
+    async def async_step_zeroconf(self, discovery_info: ZeroconfServiceInfo):
+        """Remember advertised soundbars; never create entries or discovery cards."""
+        properties = {str(k).lower(): v for k, v in discovery_info.properties.items()}
+        mac = str(properties.get("deviceid", "")).lower()
+        model = str(properties.get("model", "")).upper()
+        host = next((str(ip) for ip in discovery_info.ip_addresses if ip.version == 4), None)
+        if mac and host and model.startswith("HW-"):
+            remember(self.hass, mac, host, discovery_info.name.split(".")[0])
+            for entry in self.hass.config_entries.async_entries(DOMAIN):
+                if entry.options.get(CONF_MAC) == mac:
+                    entry.async_create_background_task(
+                        self.hass,
+                        async_check_address(self.hass, entry, host),
+                        f"{DOMAIN} address check",
+                    )
+        return self.async_abort(reason="not_supported")
 
     async def async_step_reconfigure(self, user_input=None):
         self._reconfigure_entry = self._get_reconfigure_entry()
