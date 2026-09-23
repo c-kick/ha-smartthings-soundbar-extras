@@ -8,8 +8,11 @@ from homeassistant.exceptions import (
     ServiceValidationError,
 )
 from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
-from .const import DOMAIN, PLATFORMS, SETTINGS
+from .const import CONF_CERT, CONF_HOST, CONF_USE_LOCAL, DOMAIN, PLATFORMS, SETTINGS
+from .coordinator import LocalCoordinator, delete_local_issues
+from .local_api import LocalSoundbarClient
 from .profiles import EXTRA_CONTROLS, has_q930d_profile
 from .runtime import SoundbarRuntime
 
@@ -56,16 +59,50 @@ async def async_setup_entry(hass, entry: SoundbarConfigEntry):
         raise ConfigEntryError(translation_domain=DOMAIN, translation_key="parent_removed")
     if runtime.adapter.device is None:
         raise ConfigEntryNotReady(translation_domain=DOMAIN, translation_key="parent_not_loaded")
+    if entry.options.get(CONF_USE_LOCAL):
+        client = LocalSoundbarClient(
+            async_get_clientsession(hass), entry.options[CONF_HOST], entry.options[CONF_CERT]
+        )
+        runtime.local = LocalCoordinator(hass, entry, runtime, client)
+    runtime.local_options = dict(entry.options)
     entry.runtime_data = runtime
     runtime.bind()
     entry.async_on_unload(runtime.close)
     entry.async_on_unload(runtime.adapter.parent.async_on_state_change(runtime.bind))
+    entry.async_on_unload(entry.add_update_listener(_async_options_updated))
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    if runtime.local is not None:
+        # Never await local I/O during setup: cloud entities must not wait for it.
+        entry.async_create_background_task(
+            hass, runtime.local.async_refresh(), f"{DOMAIN} local first refresh"
+        )
     return True
+
+
+async def _async_options_updated(hass, entry: SoundbarConfigEntry):
+    runtime = entry.runtime_data
+    old, new = runtime.local_options, dict(entry.options)
+    runtime.local_options = new
+    if old == new:
+        return  # a data-only update (e.g. reconfigure), which reloads by itself
+    if {k: v for k, v in old.items() if k != CONF_HOST} == {
+        k: v for k, v in new.items() if k != CONF_HOST
+    }:
+        # Only the address moved: switch the local connection in place, so cloud
+        # entities are never interrupted.
+        if runtime.local is not None:
+            runtime.local.client.host = new[CONF_HOST]
+            await runtime.local.async_request_refresh()
+        return
+    hass.config_entries.async_schedule_reload(entry.entry_id)
 
 
 async def async_unload_entry(hass, entry: SoundbarConfigEntry):
     return await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+
+
+async def async_remove_entry(hass, entry: SoundbarConfigEntry):
+    delete_local_issues(hass, entry.entry_id)
 
 
 async def async_migrate_entry(hass, entry: SoundbarConfigEntry):

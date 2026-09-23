@@ -116,3 +116,35 @@ def dependencies():
         patch("homeassistant.setup.async_process_deps_reqs"),
     ):
         yield
+
+
+@pytest.fixture
+def local_client():
+    """Replace the transport with an in-memory fake for integration tests."""
+    from .local_fake import FakeLocalClient
+
+    fake = FakeLocalClient()
+
+    def build(session, host, cert_sha256, port=1516):
+        fake.host = host
+        return fake
+
+    with patch("custom_components.soundbar_control.LocalSoundbarClient", build):
+        yield fake
+
+
+@pytest.fixture
+def local_entry(hass, entry, local_client):
+    """The standard entry with the local API enabled."""
+    hass.config_entries.async_update_entry(
+        entry,
+        options={
+            "use_local_api": True,
+            "host": "192.0.2.10",
+            "mac": "02:00:00:00:00:01",
+            "cert_sha256": "AA:BB",
+            "poll_on": 5,
+            "poll_off": 60,
+        },
+    )
+    return entry

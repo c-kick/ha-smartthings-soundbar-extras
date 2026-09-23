@@ -1,6 +1,7 @@
 """Per-soundbar state and lifecycle. Advanced audio remains explicitly assumed."""
 
 import asyncio
+import time
 
 from homeassistant.core import callback
 from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
@@ -28,6 +29,12 @@ class SoundbarRuntime:
         # Bumped by every availability update, so a slow health read never
         # overwrites a newer event or a rebind.
         self._health_version = 0
+        # Optional local API (see coordinator.py); None when disabled.
+        self.local = None
+        self.local_options: dict = {}
+        # When the last cloud sound-mode command was accepted. A local reading only
+        # confirms the mode if it started later.
+        self.sound_mode_commanded = 0.0
 
     @property
     def available(self):
@@ -134,5 +141,11 @@ class SoundbarRuntime:
                 )
             await self.adapter.command(capability, command, arguments)
             if key is not None:
+                if key == "sound_mode":
+                    self.sound_mode_commanded = time.monotonic()
                 self.states[key] = value
                 self.notify()
+        if key == "sound_mode" and self.local is not None:
+            self.entry.async_create_background_task(
+                self.hass, self.local.async_request_refresh(), f"{DOMAIN} local refresh"
+            )

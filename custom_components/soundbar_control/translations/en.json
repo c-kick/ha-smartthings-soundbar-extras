@@ -53,6 +53,16 @@
       "device_id": {"name": "SmartThings device ID", "description": "Required when more than one soundbar is configured."}
     }
   }},
+  "issues": {
+    "certificate_changed": {
+      "title": "{name}: soundbar certificate changed",
+      "description": "The soundbar's local API presented a different certificate than the one trusted when the local API was set up. This can follow a firmware update or factory reset, or mean that a different device now uses this address. The local entities are unavailable until you trust the new certificate: open the integration entry, choose **Configure**, and save the local API settings again. SmartThings controls are not affected."
+    },
+    "local_unreachable": {
+      "title": "{name}: local API unreachable",
+      "description": "SmartThings reports the soundbar as online, but its local API at {host} has not answered for 30 minutes. Check that the address is still correct and that IP control is enabled in the SmartThings app, then save the local API settings again under **Configure**. SmartThings controls are not affected."
+    }
+  },
   "exceptions": {
     "parent_removed": {"message": "The SmartThings integration this soundbar was set up with no longer exists. Remove this entry and add the soundbar again."},
     "parent_not_loaded": {"message": "The SmartThings integration or this soundbar is not loaded yet."},
