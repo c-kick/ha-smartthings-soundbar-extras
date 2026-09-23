@@ -116,6 +116,12 @@ class LocalSoundbarClient:
         self._token_ok_at = 0.0
         self._lock = asyncio.Lock()
 
+    @property
+    def url(self) -> str:
+        # The host can change at runtime (see __init__.py); bracket IPv6 literals.
+        host = f"[{self.host}]" if ":" in self.host else self.host
+        return f"https://{host}:{self._port}/"
+
     async def _post(self, method: str, params: dict | None = None) -> dict:
         payload = {"jsonrpc": "2.0", "method": method, "id": 1}
         if params:
@@ -123,7 +129,7 @@ class LocalSoundbarClient:
         try:
             async with asyncio.timeout(TIMEOUT):
                 async with self._session.post(
-                    f"https://{self.host}:{self._port}/",
+                    self.url,
                     data=json.dumps(payload, separators=(",", ":")),
                     headers={"Content-Type": "application/json", "Accept": "application/json"},
                     ssl=self._fingerprint,

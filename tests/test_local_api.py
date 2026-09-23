@@ -189,3 +189,15 @@ def test_valid_value_rejects_unsafe_strings(value):
 def test_fields_order_is_power_first():
     # Power first: a successful first read proves the token for the rest of the poll.
     assert FIELDS[0] == "power"
+
+
+@pytest.mark.parametrize(
+    ("host", "url"),
+    [
+        ("192.0.2.10", "https://192.0.2.10:1516/"),
+        ("2001:db8::10", "https://[2001:db8::10]:1516/"),
+    ],
+)
+def test_url_brackets_ipv6_literals(host, url):
+    client = LocalSoundbarClient(None, host, "AA" * 32)
+    assert client.url == url
