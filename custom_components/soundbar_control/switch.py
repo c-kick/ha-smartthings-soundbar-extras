@@ -43,10 +43,10 @@ class LocalPowerSwitch(LocalEntity, SwitchEntity):
         return self.value
 
     async def async_turn_on(self, **kwargs):
-        await self.write(self.coordinator.client.set_power(True))
+        await self.write(self.coordinator.client.set_power(True), power=True)
 
     async def async_turn_off(self, **kwargs):
-        await self.write(self.coordinator.client.set_power(False))
+        await self.write(self.coordinator.client.set_power(False), power=False)
 
 
 class LocalMuteSwitch(LocalEntity, SwitchEntity):
@@ -57,7 +57,7 @@ class LocalMuteSwitch(LocalEntity, SwitchEntity):
         return self.value
 
     async def async_turn_on(self, **kwargs):
-        await self.write(self.coordinator.client.set_mute(True))
+        await self.write(self.coordinator.client.set_mute(True), muted=True)
 
     async def async_turn_off(self, **kwargs):
-        await self.write(self.coordinator.client.set_mute(False))
+        await self.write(self.coordinator.client.set_mute(False), muted=False)

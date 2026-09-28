@@ -48,7 +48,24 @@ async def test_enable_pins_certificate(hass, parent, entry, local_client, depend
         "cert_sha256": "AA:BB",
         "poll_on": 5,
         "poll_off": 60,
+        "media_player": True,
     }
+
+
+async def test_media_player_can_be_switched_off(hass, parent, local_entry, dependencies):
+    await setup(hass, local_entry)
+    result = await start(hass, local_entry)
+    result = await hass.config_entries.options.async_configure(
+        result["flow_id"], {"use_local_api": True}
+    )
+    with patch(VALIDATE, return_value=("22_AV_HW-Q930D", "AA:BB")):
+        result = await hass.config_entries.options.async_configure(
+            result["flow_id"],
+            {"host": "192.0.2.10", "poll_on": 5, "poll_off": 60, "media_player": False},
+        )
+    result = await hass.config_entries.options.async_configure(result["flow_id"], {})
+    assert result["type"] is FlowResultType.CREATE_ENTRY
+    assert local_entry.options["media_player"] is False
 
 
 async def test_discovered_host_stores_mac(hass, parent, entry, local_client, dependencies):

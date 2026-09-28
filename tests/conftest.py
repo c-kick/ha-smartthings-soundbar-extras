@@ -1,6 +1,6 @@
 """Real HA lifecycle with the parent SmartThings integration's real runtime types."""
 
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import orjson
 import pytest
@@ -110,7 +110,9 @@ def entry(hass, parent):
 
 
 @pytest.fixture
-def dependencies():
+def dependencies(hass):
+    # media_player registers an HTTP view on setup; these tests don't start http.
+    hass.http = Mock()
     with (
         patch("homeassistant.config_entries.async_process_deps_reqs"),
         patch("homeassistant.setup.async_process_deps_reqs"),

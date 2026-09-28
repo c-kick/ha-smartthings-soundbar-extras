@@ -56,4 +56,4 @@ class LocalVolumeNumber(LocalEntity, NumberEntity):
             raise ServiceValidationError(
                 translation_domain=DOMAIN, translation_key="invalid_volume"
             )
-        await self.write(self.coordinator.client.set_volume(int(value)))
+        await self.write(self.coordinator.client.set_volume(int(value)), volume=int(value))

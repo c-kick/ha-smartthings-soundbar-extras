@@ -4,7 +4,13 @@ from homeassistant.const import Platform
 
 DOMAIN = "soundbar_control"
 NAME = "SmartThings Soundbar Extras"
-PLATFORMS = [Platform.SWITCH, Platform.SENSOR, Platform.SELECT, Platform.NUMBER]
+PLATFORMS = [
+    Platform.SWITCH,
+    Platform.SENSOR,
+    Platform.SELECT,
+    Platform.NUMBER,
+    Platform.MEDIA_PLAYER,
+]
 SETTINGS = ("nightmode", "voiceamplifier", "bassboost")
 SOURCE_CAPABILITY = "samsungvd.audioInputSource"
 PREFIX = "x.com.samsung.networkaudio."
@@ -15,6 +21,7 @@ CONF_MAC = "mac"
 CONF_CERT = "cert_sha256"
 CONF_POLL_ON = "poll_on"
 CONF_POLL_OFF = "poll_off"
+CONF_MEDIA_PLAYER = "media_player"
 DEFAULT_POLL_ON = 5
 DEFAULT_POLL_OFF = 60
 ISSUE_CERT = "certificate_changed"

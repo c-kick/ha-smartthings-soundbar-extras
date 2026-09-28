@@ -11,6 +11,7 @@ from .const import (
     CONF_CERT,
     CONF_HOST,
     CONF_MAC,
+    CONF_MEDIA_PLAYER,
     CONF_POLL_OFF,
     CONF_POLL_ON,
     CONF_USE_LOCAL,
@@ -208,6 +209,7 @@ class LocalApiOptionsFlow(OptionsFlow):
                     CONF_CERT: sha,
                     CONF_POLL_ON: int(user_input[CONF_POLL_ON]),
                     CONF_POLL_OFF: int(user_input[CONF_POLL_OFF]),
+                    CONF_MEDIA_PLAYER: bool(user_input[CONF_MEDIA_PLAYER]),
                 }
                 return await self.async_step_confirm()
         # After a validation error, re-show the host the user typed.
@@ -235,6 +237,9 @@ class LocalApiOptionsFlow(OptionsFlow):
                     vol.Required(
                         CONF_POLL_OFF, default=options.get(CONF_POLL_OFF, DEFAULT_POLL_OFF)
                     ): _seconds(10, 600),
+                    vol.Required(
+                        CONF_MEDIA_PLAYER, default=options.get(CONF_MEDIA_PLAYER, True)
+                    ): bool,
                 }
             ),
         )

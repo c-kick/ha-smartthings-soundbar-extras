@@ -52,6 +52,16 @@ Sources: [YASSI's OCF documentation](https://ha-samsung-soundbar.vercel.app/smar
 and authenticated read-only responses from `/v1/capabilities/samsungvd.audioInputSource/1`
 and `/v1/devices/{deviceId}/status`. No account-specific responses are bundled here.
 
+## Local media player
+
+Added in 2.3.0 (on by default, can be switched off under Configure). The goal is a
+control that reacts quickly in the HA interface. A measurement on 2026-09-28 showed a
+local command plus a full status read takes about 0.3 s. HA's refresh debouncer then
+skipped the read for the next quick commands, so before this change a quick series of
+volume steps only reached the UI at the next poll. Every local control now shows the
+written value once the soundbar accepts the command. The patched data keeps its
+`read_started`, and the debounce and poll timer are left alone.
+
 ## Local API (IP Control)
 
 Live probes against the HW-Q930D, firmware 1072.1, on 2026-09-23, compared with

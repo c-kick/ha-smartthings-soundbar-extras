@@ -97,8 +97,6 @@ async def test_refresh_error_sends_nothing(hass, parent, http):
 async def test_rejected_reply_is_logged(hass, parent, http, caplog):
     http[1].json.return_value = {"results": [{"id": "x", "status": "FAILED"}]}
     with pytest.raises(HomeAssistantError):
-        await SmartThingsAdapter(hass, parent.entry_id, DEVICE).command(
-            "execute", "execute", []
-        )
+        await SmartThingsAdapter(hass, parent.entry_id, DEVICE).command("execute", "execute", [])
     assert "execute.execute" in caplog.text
     assert "FAILED" in caplog.text

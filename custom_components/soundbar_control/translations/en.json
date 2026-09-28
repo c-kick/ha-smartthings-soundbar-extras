@@ -35,7 +35,11 @@
         "data": {
           "host": "IP address",
           "poll_on": "Polling interval while on",
-          "poll_off": "Polling interval while off"
+          "poll_off": "Polling interval while off",
+          "media_player": "Add a local media player"
+        },
+        "data_description": {
+          "media_player": "One media player for power, volume, mute, input and sound mode. It reacts faster than the SmartThings media player and keeps working without the cloud."
         }
       },
       "confirm": {
@@ -79,6 +83,9 @@
       "front_top_level": {"name": "Front top level"}, "rear_level": {"name": "Rear level"},
       "rear_top_level": {"name": "Rear top level"},
       "volume_local": {"name": "Volume (local)"}
+    },
+    "media_player": {
+      "player_local": {"name": "Player (local)"}
     }
   },
   "services": {"set": {

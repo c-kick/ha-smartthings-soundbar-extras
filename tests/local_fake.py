@@ -189,6 +189,8 @@ class FakeLocalClient:
         if self.write_error is not None:
             raise self.write_error
         self.writes.append((name, value))
+        # Like the real soundbar, the next read reports what was written.
+        self.value = replace(self.value, **{name: value})
 
     async def set_power(self, on):
         await self._write("power", on)

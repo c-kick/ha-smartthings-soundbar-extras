@@ -189,3 +189,41 @@ async def test_observed_options_restored(hass, parent, local_entry, dependencies
     options = hass.states.get(eid).attributes["options"]
     assert "WIFI_AIRPLAY" in options
     assert "bad;value" not in options
+
+
+async def test_accepted_write_shows_before_next_read(
+    hass, parent, local_entry, local_client, dependencies
+):
+    """A second quick write shows at once, although HA debounces its refresh."""
+    await ready(hass, local_entry)
+    eid = entity_id(hass, "number", "volume_local")
+    for value in (25, 30):
+        await hass.services.async_call(
+            "number", "set_value", {"entity_id": eid, "value": value}, blocking=True
+        )
+    assert hass.states.get(eid).state == "30"
+
+
+async def test_accepted_write_keeps_read_time(hass, parent, local_entry, dependencies):
+    """Showing a written value must not pass for a fresh reading of the soundbar."""
+    await ready(hass, local_entry)
+    local = local_entry.runtime_data.local
+    eid = entity_id(hass, "switch", "mute_local")
+    await hass.services.async_call("switch", "turn_on", {"entity_id": eid}, blocking=True)
+    last_read = local.data.read_started
+    # This write's refresh is debounced, so only the written value changes.
+    await hass.services.async_call("switch", "turn_off", {"entity_id": eid}, blocking=True)
+    assert local.data.muted is False
+    assert local.data.read_started == last_read
+
+
+async def test_write_while_polls_fail_stays_unavailable(
+    hass, parent, local_entry, local_client, dependencies
+):
+    await ready(hass, local_entry)
+    local_client.error = LocalApiUnreachable("down")
+    await local_entry.runtime_data.local.async_refresh()
+    eid = entity_id(hass, "switch", "mute_local")
+    await hass.services.async_call("switch", "turn_on", {"entity_id": eid}, blocking=True)
+    await hass.async_block_till_done()
+    assert hass.states.get(eid).state == "unavailable"

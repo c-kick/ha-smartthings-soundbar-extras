@@ -50,6 +50,13 @@ one. The selector can set only the four cloud-settable modes (`standard`,
 `MUSIC`, are shown in the selector too, but can only be set with
 **Sound mode (local)**.
 
+The local API also adds **Player (local)**, a media player for power, volume, mute,
+input and sound mode. It reacts faster than the SmartThings media player and keeps
+working without the cloud. It has no play/pause or track info, because IP Control
+doesn't offer them. You can switch it off under **Configure** (**Add a local media
+player**). Every local control shows a command's result as soon as the soundbar
+accepts it, without waiting for the next poll. A full reading confirms it shortly after.
+
 After you change the mode with the cloud selector, it stays assumed for about
 2 seconds: SmartThings accepting the command doesn't mean the soundbar has applied
 it yet, so only a local reading taken after that settles the state.
@@ -62,7 +69,8 @@ To enable it:
 1. In the SmartThings app, turn on IP control for the soundbar.
 2. Open the integration entry, choose **Configure**, and turn on **Use local API**.
 3. Pick the soundbar from the discovered list, or type its address, then set the
-   two polling intervals (defaults: 5 s while on, 60 s while off).
+   two polling intervals (defaults: 5 s while on, 60 s while off). **Add a local
+   media player** is on by default.
 
 Discovered addresses come from AirPlay advertisements the soundbar already sends.
 A later address change is only applied automatically when the new address presents
