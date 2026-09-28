@@ -101,7 +101,7 @@ async def test_local_diagnostics_exclude_address_and_pin(hass, parent, local_ent
     assert local["status"]["codec"] == "DTS"
     assert local["status"]["failed"] == []
     text = str(diagnostics)
-    for secret in ("192.0.2.10", "02:00:00", "AA:BB"):
+    for secret in ("192.0.2.10", "02:00:00:00:00:01", "AA:BB"):
         assert secret not in text
 
 

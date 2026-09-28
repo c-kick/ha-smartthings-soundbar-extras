@@ -131,7 +131,7 @@ treats any of them as a failure of that one call.
 AirPlay discovery (`_airplay._tcp.local.`) advertises these TXT fields, used to
 find the soundbar's current address and match it to a configured entry:
 
-- `deviceid`: the MAC address (`02:00:00:00:00:01` on the test unit)
+- `deviceid`: the MAC address
 - `manufacturer`: `Samsung`
 - `model`: `HW-Q930D`
 
