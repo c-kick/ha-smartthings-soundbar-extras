@@ -141,3 +141,12 @@ Mode/channel implementation evidence:
 and [Samsung's Q930D/Q800D/Q700D manual](https://downloadcenter.samsung.com/content/UM/202403/20240307105603275/AH81-17413A-00_WUG_HW-Q930D_Q800D_Q700D_ZA_ENG_240228.0.pdf),
 English pages 6–8. Payload shapes were independently implemented; no upstream
 implementation code is bundled.
+
+## Wider model support (2.4.0)
+
+Research on 2026-09-28: since March 2024 SmartThings no longer returns OCF execute
+status, so support can't be detected per device. Every model is offered every control;
+the HW-Q930D pre-selects the tested set, other Q-series the three switches. The local
+API is year-bound (2024 D and newer), not model-bound. Rear side level (Spk_Rear_Side)
+comes from the Q990/Q995 manuals. The woofer range is −12..+6 following other projects
+and a Q90R report.

@@ -26,7 +26,7 @@
     "step": {
       "init": {
         "title": "Local API",
-        "description": "Optionally also connect to the soundbar over your local network (Samsung IP Control). This adds the audio codec, direct input and sound-mode control, and real readback. SmartThings controls keep working either way. IP control must be enabled in the SmartThings app under the soundbar's settings.",
+        "description": "Optionally also connect to the soundbar over your local network (Samsung IP Control, on 2024 and newer Wi-Fi soundbars). This adds the audio codec, direct input and sound-mode control, and real readback. SmartThings controls keep working either way. IP control must be enabled in the SmartThings app under the soundbar's settings.",
         "data": {"use_local_api": "Use local API"}
       },
       "local": {

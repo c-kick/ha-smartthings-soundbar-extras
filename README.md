@@ -16,9 +16,9 @@ Home Assistant add-on. Keep the built-in integration for power, volume and mute.
 | Night mode switch | Remembers the last command accepted by SmartThings |
 | Voice amplifier switch | Same assumed-state behavior |
 | Bass boost switch | Same assumed-state behavior |
-| Sound mode selector (HW-Q930D) | Standard, Surround, Game Pro, Adaptive Sound; assumed state |
-| Woofer level (HW-Q930D) | Whole-number adjustments from −6 to +6 dB; assumed state |
-| Channel levels (HW-Q930D) | Center, side, wide, front top, rear, rear top; −6 to +6 dB each |
+| Sound mode selector | Standard, Surround, Game Pro, Adaptive Sound; assumed state |
+| Woofer level | Whole-number adjustments from −12 to +6 dB; assumed state |
+| Channel levels | Center, side, wide, front top, rear, rear top, rear side; −6 to +6 dB each |
 | Reported input source sensor | Shows the last source reported by SmartThings; disabled by default when the local API is on |
 
 **Assumed state is deliberate.** Samsung's advanced-audio readback is unreliable.
@@ -29,9 +29,8 @@ Cloud acceptance does not prove the soundbar applied the setting.
 
 Mode and level controls also restore their last accepted value. They send **no
 commands at startup** and never initialize your speaker levels to zero. Channel
-adjustments update only the selected channel. All seven levels use sliders with
-1 dB steps from −6 to +6. The woofer currently exposes the
-conservative −6 to +6 range; lower attenuation settings are not yet model-verified.
+adjustments update only the selected channel. All levels use sliders with
+1 dB steps: channels from −6 to +6, the woofer from −12 to +6.
 
 There is no cloud input control. The Q930D's cloud capability only offers
 `setNextInputSource`, and on the real soundbar SmartThings answers `ACCEPTED` but the
@@ -40,8 +39,8 @@ API below. The source sensor can lag or remain stale if Samsung does not send an
 
 ## Local API (optional)
 
-HW-Q930D and other soundbars with Samsung's TLS-based IP Control (port 1516) can be
-polled directly, alongside the cloud connection. This adds six `(local)` entities —
+Samsung's 2024 (D) and newer Wi-Fi soundbars can be reached directly over the local
+network with IP Control (TLS on port 1516), alongside the cloud connection. This adds six `(local)` entities —
 codec, input, sound mode, power, volume and mute — all read back from the device
 itself, not assumed. It also changes the cloud sound mode selector: once the local
 API confirms a reading, the selector shows that confirmed state instead of an assumed
@@ -49,6 +48,10 @@ one. The selector can set only the four cloud-settable modes (`standard`,
 `surround`, `game` and `adaptive`). Other modes the soundbar reports, such as
 `MUSIC`, are shown in the selector too, but can only be set with
 **Sound mode (local)**.
+
+Some models accept a local value but ignore it (a Q990F answers MUSIC with success
+and stays in its mode) or refuse it outright. A refused value shows an error; an
+ignored one shows briefly and then reverts at the confirming read.
 
 The local API also adds **Player (local)**, a media player for power, volume, mute,
 input and sound mode. It reacts faster than the SmartThings media player and keeps
@@ -97,19 +100,32 @@ readback at all — they stay assumed-state, local API or not.
 - The built-in **SmartThings** integration, configured and connected.
 - A Samsung soundbar registered there with `audioVolume` and `execute` capabilities.
 
-**HW-Q930D** (firmware 1072.1) is the only model tested. On 2026-09-28 every control
-was checked on the physical soundbar: the three audio switches, sound mode and all
-seven levels (confirmed in the SmartThings app, since the soundbar reports no
-readback for them), and power, volume, mute, input and sound mode through the local API
-(confirmed on the soundbar's display and by reading them back). The mode and level
-commands use YASSI's known OCF formats and Samsung's Q930D manual.
+### Compatibility
 
-Other models may work, but are not claimed as tested. During setup, enable only
-audio controls your model offers in the SmartThings app. HW-Q930D defaults to all
-available audio controls; other models offer the original three switches and
-default to none. Mode/level profiles are not assumed compatible with other models.
+SmartThings no longer tells integrations what a soundbar supports, so setup offers every
+control and pre-selects only what is known to work. Choose the controls the SmartThings
+app shows for your soundbar.
+
+| | Tested here | Reported working by other users | Expected | Not supported |
+| --- | --- | --- | --- | --- |
+| Night mode, voice amplifier, bass boost | HW-Q930D | Q990B, Q995B, Q930B, Q995GC | Most Q-series from 2020 | Unknown for S-series, B-series and Q6x |
+| Sound mode | HW-Q930D | QW950T, Q900A, Q930B, Q990B, Q990C | Q-series from 2020 | Unknown for 2019 models |
+| Woofer and channel levels | HW-Q930D | Q935B (woofer), Q90R (woofer), Q995GC (channels) | Channels your model's speaker layout has | Channels your model lacks |
+| Local API and Player (local) | HW-Q930D | Q990D, Q800D, S800D, S700D, Q990F, Q935GF, Q930F, Q995F | 2024 (D) and newer Wi-Fi soundbars | 2023 (C) and older; Q800H and S61D answer power only |
+
+HA core has its own sound mode control for some 2022–2023 soundbars (e.g. Q990C);
+enabling this integration's sound mode as well works but is redundant.
+
+Reports come from [YASSI](https://github.com/samuelspagl/ha_samsung_soundbar/issues),
+[hass-samsung-soundbar-local](https://github.com/ZtF/hass-samsung-soundbar-local/issues),
+the [HA community forum](https://community.home-assistant.io/t/samsung-soundbar-local/884397)
+and [RTI's driver list](https://driverstore.rticontrol.com/driver/samsung-soundbars).
 If you try another model, please open an issue with the **Works on my model** form,
 whether it works or not, and attach the diagnostics.
+
+**HW-Q930D** (firmware 1072.1) was checked on 2026-09-28: every cloud control in the
+SmartThings app, and power, volume, mute, input and sound mode through the local API.
+
 Multiple soundbars and multiple SmartThings
 locations are supported, with one companion entry per soundbar.
 
