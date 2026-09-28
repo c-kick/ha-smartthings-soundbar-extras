@@ -9,3 +9,4 @@ htmlcov/
 configuration*.yaml
 *.bak*
 dist/
+.superpowers/
