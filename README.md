@@ -97,17 +97,19 @@ readback at all — they stay assumed-state, local API or not.
 - The built-in **SmartThings** integration, configured and connected.
 - A Samsung soundbar registered there with `audioVolume` and `execute` capabilities.
 
-**HW-Q930D:** all three audio switches tested on a physical device. The additional
-source command is verified against its live capability schema and covered by
-mocked tests; physical source cycling still needs validation. Mode/channel commands
-are based on YASSI's known OCF formats and Samsung's Q930D manual, with exact-payload
-tests. A HW-Q930D user reports the mode and level controls working. Live read probes for sound
-mode, woofer, and channel levels all returned null, so no readback is claimed.
+**HW-Q930D** (firmware 1072.1) is the only model tested. On 2026-09-28 every control
+was checked on the physical soundbar: the three audio switches, sound mode and all
+seven levels (confirmed in the SmartThings app, since the soundbar reports no
+readback for them), and power, volume, mute, input and sound mode through the local API
+(confirmed on the soundbar's display and by reading them back). The mode and level
+commands use YASSI's known OCF formats and Samsung's Q930D manual.
 
 Other models may work, but are not claimed as tested. During setup, enable only
 audio controls your model offers in the SmartThings app. HW-Q930D defaults to all
 available audio controls; other models offer the original three switches and
 default to none. Mode/level profiles are not assumed compatible with other models.
+If you try another model, please open an issue with the **Works on my model** form,
+whether it works or not, and attach the diagnostics.
 Multiple soundbars and multiple SmartThings
 locations are supported, with one companion entry per soundbar.
 

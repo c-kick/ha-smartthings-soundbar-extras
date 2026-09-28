@@ -1,0 +1,55 @@
+name: Something doesn't work
+description: A control, entity or setup step behaves differently than described in the README.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Only the HW-Q930D has been tested. If you have another model, please still report it:
+        it helps make the integration work for more soundbars.
+  - type: input
+    id: model
+    attributes:
+      label: Soundbar model
+      description: As shown in the SmartThings app, e.g. HW-Q930D.
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Soundbar firmware version
+      description: SmartThings app → the soundbar → Information.
+  - type: input
+    id: versions
+    attributes:
+      label: Home Assistant and integration versions
+      description: e.g. HA 2026.9.4, SmartThings Soundbar Extras 2.3.0
+    validations:
+      required: true
+  - type: dropdown
+    id: local
+    attributes:
+      label: Is the local API enabled?
+      options: ["Yes", "No"]
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened, and what did you expect?
+      description: Which entity, what you did, what the soundbar did (display, sound), and what HA showed.
+    validations:
+      required: true
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: |
+        Settings → Devices & services → SmartThings Soundbar Extras → ⋮ → Download diagnostics.
+        Attach the file. It contains no addresses or credentials.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log lines
+      description: Anything from the HA log mentioning soundbar_control.
+      render: text

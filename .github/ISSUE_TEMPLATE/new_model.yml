@@ -1,0 +1,34 @@
+name: Works (or partly works) on my model
+description: Tell us which controls work on a soundbar that hasn't been tested yet.
+labels: [model report]
+body:
+  - type: input
+    id: model
+    attributes:
+      label: Soundbar model
+    validations:
+      required: true
+  - type: input
+    id: firmware
+    attributes:
+      label: Soundbar firmware version
+  - type: checkboxes
+    id: works
+    attributes:
+      label: What works?
+      options:
+        - label: Night mode, voice amplifier, bass boost (check them in the SmartThings app)
+        - label: Local API connects (IP control)
+        - label: Local power, volume and mute
+        - label: Local input selection
+        - label: Local sound mode
+        - label: Player (local)
+  - type: textarea
+    id: notes
+    attributes:
+      label: Anything that didn't work, or inputs and sound modes your soundbar reported
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Diagnostics
+      description: Attach the file from ⋮ → Download diagnostics on the integration entry.

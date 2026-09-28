@@ -1,6 +1,6 @@
 """Allowlisted diagnostics: never return parent config, raw cloud payloads, or addresses."""
 
-from .const import CONF_CERT, CONF_POLL_OFF, CONF_POLL_ON
+from .const import CONF_CERT, CONF_MEDIA_PLAYER, CONF_POLL_OFF, CONF_POLL_ON
 
 
 async def async_get_config_entry_diagnostics(hass, entry):
@@ -13,6 +13,7 @@ async def async_get_config_entry_diagnostics(hass, entry):
             "cert_pinned": bool(entry.options.get(CONF_CERT)),
             "poll_on": entry.options.get(CONF_POLL_ON),
             "poll_off": entry.options.get(CONF_POLL_OFF),
+            "media_player": entry.options.get(CONF_MEDIA_PLAYER, True),
             "last_update_success": local.last_update_success,
             "last_error": local.last_error,
             "status": None

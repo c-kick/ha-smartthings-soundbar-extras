@@ -97,6 +97,7 @@ async def test_local_diagnostics_exclude_address_and_pin(hass, parent, local_ent
     assert local["enabled"] is True
     assert local["cert_pinned"] is True
     assert local["poll_on"] == 5
+    assert local["media_player"] is True
     assert local["status"]["codec"] == "DTS"
     assert local["status"]["failed"] == []
     text = str(diagnostics)
