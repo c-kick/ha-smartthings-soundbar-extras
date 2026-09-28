@@ -96,6 +96,17 @@ async def test_quick_volume_steps_add_up(hass, parent, local_entry, local_client
     assert hass.states.get(player(hass)).attributes["volume_level"] == 0.13
 
 
+async def test_simultaneous_volume_steps_add_up(
+    hass, parent, local_entry, local_client, dependencies
+):
+    """Two taps arriving together must not both count from the same volume."""
+    import asyncio
+
+    await ready(hass, local_entry)
+    await asyncio.gather(call(hass, "volume_up"), call(hass, "volume_up"))
+    assert local_client.writes == [("volume", 11), ("volume", 12)]
+
+
 async def test_volume_stays_in_range(hass, parent, local_entry, local_client, dependencies):
     local_client.value = status(volume=100)
     await ready(hass, local_entry)

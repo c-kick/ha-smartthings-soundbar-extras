@@ -1,5 +1,6 @@
 """Player (local): the local API as one media player, for a quick-reacting dashboard."""
 
+import asyncio
 from dataclasses import dataclass
 from typing import Any
 
@@ -61,6 +62,7 @@ class LocalMediaPlayer(LocalEntity, MediaPlayerEntity, RestoreEntity):
         super().__init__(runtime, key)
         self._inputs = ObservedValues(KNOWN_INPUTS)
         self._sound_modes = ObservedValues(KNOWN_SOUND_MODES)
+        self._step_lock = asyncio.Lock()
 
     def _read(self, field: str):
         data = self.coordinator.data
@@ -130,11 +132,14 @@ class LocalMediaPlayer(LocalEntity, MediaPlayerEntity, RestoreEntity):
         await self._set_volume(round(volume * 100))
 
     async def _step_volume(self, step: int) -> None:
-        # Counts from the last accepted value, so quick steps add up.
-        volume = self._read("volume")
-        if volume is None:
-            raise HomeAssistantError(translation_domain=DOMAIN, translation_key="local_unavailable")
-        await self._set_volume(volume + step)
+        # Counts from the last accepted value, one step at a time, so quick steps add up.
+        async with self._step_lock:
+            volume = self._read("volume")
+            if volume is None:
+                raise HomeAssistantError(
+                    translation_domain=DOMAIN, translation_key="local_unavailable"
+                )
+            await self._set_volume(volume + step)
 
     async def async_volume_up(self) -> None:
         await self._step_volume(1)

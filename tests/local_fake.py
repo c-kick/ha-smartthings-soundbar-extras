@@ -186,6 +186,7 @@ class FakeLocalClient:
         return replace(self.value, read_started=started)
 
     async def _write(self, name, value):
+        await asyncio.sleep(0)  # a network round-trip lets other calls run meanwhile
         if self.write_error is not None:
             raise self.write_error
         self.writes.append((name, value))
