@@ -8,7 +8,7 @@ restart. Levels use sliders from −6 to +6 dB in 1 dB steps.
 
 | Feature | Evidence | Decision |
 | --- | --- | --- |
-| Next input | Live `samsungvd.audioInputSource` schema exposes `setNextInputSource` with no arguments | Implemented as a button; physical validation pending |
+| Next input | Live `samsungvd.audioInputSource` schema exposes `setNextInputSource` with no arguments | Removed 2026-09-28: on the HW-Q930D SmartThings answers `ACCEPTED` but the input never changes (tested on BT and WIFI). Use the local `Input (local)` selector |
 | Reported input | Live status exposes `inputSource`; Q930D advertises D.IN, HDMI1, BT, WIFI | Implemented as a sensor using existing push events |
 | Choose an exact input | That cloud capability has no setter accepting an input name | Do not simulate selection by repeated next-source commands with stale feedback |
 | Sound mode | Samsung Q930D manual lists Standard, Surround, Game Pro and Adaptive Sound; YASSI supplies the OCF values | Implemented for HW-Q930D as an assumed-state selector; user reports working |

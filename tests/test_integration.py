@@ -27,7 +27,7 @@ async def test_native_entities_state_and_failures(hass, parent, entry, dependenc
     state = hass.states.get(entity_id)
     assert state.state == "unknown"
     assert state.attributes["assumed_state"] is True
-    assert len(er.async_entries_for_config_entry(registry, entry.entry_id)) == 5
+    assert len(er.async_entries_for_config_entry(registry, entry.entry_id)) == 4
     devices = dr.async_get(hass)
     parent_device = devices.async_get_device_by_identifier(("smartthings", DEVICE), parent.entry_id)
     companion = devices.async_get_device_by_identifier((DOMAIN, DEVICE), entry.entry_id)
@@ -79,16 +79,6 @@ async def test_parent_reload_and_events(hass, parent, entry, dependencies):
     fire(new_client, "DEVICE_HEALTH_EVENT", status="OFFLINE")
     assert not runtime.available
     await hass.config_entries.async_unload(entry.entry_id)
-
-
-async def test_source_button_does_not_invent_source(hass, parent, entry, dependencies):
-    await setup(hass, entry)
-    registry = er.async_get(hass)
-    button = registry.async_get_entity_id("button", DOMAIN, f"{DEVICE}_next_source")
-    with patch.object(entry.runtime_data.adapter, "command", new_callable=AsyncMock) as command:
-        await hass.services.async_call("button", "press", {"entity_id": button}, blocking=True)
-        command.assert_awaited_once_with("samsungvd.audioInputSource", "setNextInputSource", [])
-    assert entry.runtime_data.source == "D.IN"
 
 
 async def test_diagnostics_exclude_credentials_and_identifiers(hass, parent, entry, dependencies):

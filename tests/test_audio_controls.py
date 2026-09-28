@@ -34,7 +34,7 @@ async def test_new_entities_start_unknown_without_commands(hass, parent, audio_e
     ) as command:
         await setup(hass, audio_entry)
         assert (
-            len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 13
+            len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 12
         )
         for key in EXTRA_CONTROLS:
             domain = "select" if key == "sound_mode" else "number"
@@ -159,7 +159,7 @@ async def test_unprofiled_model_does_not_get_extra_entities(
         audio_entry, data={**audio_entry.data, "model": "HW-UNKNOWN"}
     )
     await setup(hass, audio_entry)
-    assert len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 5
+    assert len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 4
     with patch.object(
         audio_entry.runtime_data.adapter, "command", new_callable=AsyncMock
     ) as command:

@@ -121,9 +121,6 @@ class SoundbarRuntime:
         self._require(setting)
         await self._execute("advancedaudio", {f"{PREFIX}{setting}": int(enabled)}, setting, enabled)
 
-    async def next_source(self):
-        await self._send(SOURCE_CAPABILITY, "setNextInputSource", [])
-
     async def set_sound_mode(self, mode: str):
         if mode not in SOUND_MODES:
             raise ServiceValidationError(

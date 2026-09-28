@@ -63,7 +63,6 @@
       "power_local": {"name": "Power (local)"},
       "mute_local": {"name": "Mute (local)"}
     },
-    "button": {"next_source": {"name": "Next input source"}},
     "sensor": {
       "input_source": {"name": "Reported input source"},
       "audio_codec_local": {"name": "Audio codec (local)"}

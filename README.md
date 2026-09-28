@@ -19,7 +19,6 @@ Home Assistant add-on. Keep the built-in integration for power, volume and mute.
 | Sound mode selector (HW-Q930D) | Standard, Surround, Game Pro, Adaptive Sound; assumed state |
 | Woofer level (HW-Q930D) | Whole-number adjustments from −6 to +6 dB; assumed state |
 | Channel levels (HW-Q930D) | Center, side, wide, front top, rear, rear top; −6 to +6 dB each |
-| Next input source button | Cycles sources when `samsungvd.audioInputSource` is advertised |
 | Reported input source sensor | Shows the last source reported by SmartThings |
 
 **Assumed state is deliberate.** Samsung's advanced-audio readback is unreliable.
@@ -34,10 +33,10 @@ adjustments update only the selected channel. All seven levels use sliders with
 1 dB steps from −6 to +6. The woofer currently exposes the
 conservative −6 to +6 range; lower attenuation settings are not yet model-verified.
 
-Source control has a different limitation: the Q930D's cloud capability offers
-`setNextInputSource`, not direct input selection. We expose that exact behavior.
-The source sensor can lag or remain stale if Samsung does not send an update;
-pressing the button does not make the integration guess the new input.
+There is no cloud input control. The Q930D's cloud capability only offers
+`setNextInputSource`, and on the real soundbar SmartThings answers `ACCEPTED` but the
+input never changes. To switch inputs, use the `Input (local)` selector from the local
+API below. The source sensor can lag or remain stale if Samsung does not send an update.
 
 ## Local API (optional)
 
