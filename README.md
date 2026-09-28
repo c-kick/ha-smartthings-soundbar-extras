@@ -106,10 +106,10 @@ SmartThings no longer tells integrations what a soundbar supports, so setup offe
 control and pre-selects only what is known to work. Choose the controls the SmartThings
 app shows for your soundbar.
 
-| | Tested here | Reported working by other users | Expected | Not supported |
+| | Tested here | Reported working by other users | Expected | Not supported or unknown |
 | --- | --- | --- | --- | --- |
-| Night mode, voice amplifier, bass boost | HW-Q930D | Q990B, Q995B, Q930B, Q995GC | Most Q-series from 2020 | Unknown for S-series, B-series and Q6x |
-| Sound mode | HW-Q930D | QW950T, Q900A, Q930B, Q990B, Q990C | Q-series from 2020 | Unknown for 2019 models |
+| Night mode, voice amplifier, bass boost | HW-Q930D | Q990B, Q995B, Q930B, Q995GC | Most Q-series from 2020 | No reports yet for S-series, B-series and Q6x |
+| Sound mode | HW-Q930D | QW950T, Q900A, Q930B, Q990B, Q990C | Q-series from 2020 | No reports yet for 2019 models |
 | Woofer and channel levels | HW-Q930D | Q935B (woofer), Q90R (woofer), Q995GC (channels) | Channels your model's speaker layout has | Channels your model lacks |
 | Local API and Player (local) | HW-Q930D | Q990D, Q800D, S800D, S700D, Q990F, Q935GF, Q930F, Q995F | 2024 (D) and newer Wi-Fi soundbars | 2023 (C) and older; Q800H and S61D answer power only |
 
