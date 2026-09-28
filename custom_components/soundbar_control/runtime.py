@@ -8,7 +8,16 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.event import async_call_later
 
 from .const import DOMAIN, PREFIX, SOUND_MODE_SETTLE, SOURCE_CAPABILITY
-from .profiles import CHANNELS, LEVELS, SOUND_MODES, profile, valid_level
+from .profiles import (
+    CHANNELS,
+    LEVELS,
+    MAX_LEVEL,
+    MIN_LEVEL,
+    SOUND_MODES,
+    WOOFER_MAX,
+    profile,
+    valid_level,
+)
 from .smartthings import SmartThingsAdapter
 
 
@@ -131,8 +140,13 @@ class SoundbarRuntime:
             "soundmode", {f"{PREFIX}soundmode": SOUND_MODES[mode]}, "sound_mode", mode
         )
 
+    def level_range(self, key: str) -> tuple[int, int]:
+        if key == "woofer_level":
+            return profile(self.entry.data["model"]).woofer_min, WOOFER_MAX
+        return MIN_LEVEL, MAX_LEVEL
+
     async def set_level(self, key: str, value: float):
-        if key not in LEVELS or not valid_level(value):
+        if key not in LEVELS or not valid_level(value, *self.level_range(key)):
             raise ServiceValidationError(translation_domain=DOMAIN, translation_key="invalid_level")
         self._require(key)
         level = int(value)

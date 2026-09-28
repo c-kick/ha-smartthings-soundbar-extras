@@ -7,7 +7,7 @@ from homeassistant.exceptions import ServiceValidationError
 from .const import DOMAIN
 from .entity import SoundbarEntity
 from .local_entity import LocalEntity
-from .profiles import LEVELS, MAX_LEVEL, MIN_LEVEL, valid_level
+from .profiles import LEVELS, valid_level
 
 
 async def async_setup_entry(hass, entry, async_add_entities):
@@ -19,11 +19,13 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 class SpeakerLevelNumber(SoundbarEntity, RestoreNumber):
     _attr_assumed_state = True
-    _attr_native_min_value = MIN_LEVEL
-    _attr_native_max_value = MAX_LEVEL
     _attr_native_step = 1
     _attr_native_unit_of_measurement = UnitOfSoundPressure.DECIBEL
     _attr_mode = NumberMode.SLIDER
+
+    def __init__(self, runtime, key):
+        super().__init__(runtime, key)
+        self._attr_native_min_value, self._attr_native_max_value = runtime.level_range(key)
 
     @property
     def native_value(self):
@@ -33,7 +35,7 @@ class SpeakerLevelNumber(SoundbarEntity, RestoreNumber):
         await super().async_added_to_hass()
         if self.key not in self.runtime.states:
             restored = await self.async_get_last_number_data()
-            if restored and valid_level(restored.native_value):
+            if restored and valid_level(restored.native_value, *self.runtime.level_range(self.key)):
                 self.runtime.states[self.key] = int(restored.native_value)
 
     async def async_set_native_value(self, value: float):

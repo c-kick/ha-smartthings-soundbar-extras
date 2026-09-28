@@ -259,3 +259,47 @@ async def test_existing_entry_keeps_its_controls(hass, parent, entry, dependenci
     registry = er.async_get(hass)
     assert registry.async_get_entity_id("number", DOMAIN, f"{DEVICE}_rear_side_level") is None
     assert entry.data["settings"] == old_defaults
+
+
+async def test_woofer_accepts_minus_twelve(hass, parent, audio_entry, dependencies):
+    await setup(hass, audio_entry)
+    runtime = audio_entry.runtime_data
+    with patch.object(runtime.adapter, "command", new_callable=AsyncMock) as command:
+        await runtime.set_level("woofer_level", -12)
+        command.assert_awaited_once_with(
+            "execute", "execute", ["/sec/networkaudio/woofer", {f"{PREFIX}woofer": -12}]
+        )
+    eid = er.async_get(hass).async_get_entity_id("number", DOMAIN, f"{DEVICE}_woofer_level")
+    assert hass.states.get(eid).attributes["min"] == -12
+
+
+@pytest.mark.parametrize("value", [-13, 7])
+async def test_woofer_outside_range_never_sent(hass, parent, audio_entry, dependencies, value):
+    await setup(hass, audio_entry)
+    runtime = audio_entry.runtime_data
+    with patch.object(runtime.adapter, "command", new_callable=AsyncMock) as command:
+        with pytest.raises(HomeAssistantError):
+            await runtime.set_level("woofer_level", value)
+        command.assert_not_called()
+
+
+@pytest.mark.parametrize(("stored", "kept"), [(-10, "-10"), (-13, "unknown")])
+async def test_woofer_restore_uses_the_range(hass, parent, audio_entry, dependencies, stored, kept):
+    eid = (
+        er.async_get(hass)
+        .async_get_or_create("number", DOMAIN, f"{DEVICE}_woofer_level", config_entry=audio_entry)
+        .entity_id
+    )
+    mock_restore_cache_with_extra_data(
+        hass,
+        [(State(eid, str(stored)), {"native_value": stored, "native_unit_of_measurement": "dB",
+          "native_min_value": -12, "native_max_value": 6, "native_step": 1})],
+    )  # fmt: skip
+    await setup(hass, audio_entry)
+    assert hass.states.get(eid).state == kept
+
+
+async def test_channel_levels_stay_within_six(hass, parent, audio_entry, dependencies):
+    await setup(hass, audio_entry)
+    eid = er.async_get(hass).async_get_entity_id("number", DOMAIN, f"{DEVICE}_center_level")
+    assert hass.states.get(eid).attributes["min"] == -6

@@ -115,7 +115,7 @@
     "choose_device": {"message": "Select one configured soundbar using its SmartThings device ID."},
     "setting_disabled": {"message": "This audio control is not enabled for this soundbar."},
     "invalid_sound_mode": {"message": "Choose Standard, Surround, Game Pro, or Adaptive Sound."},
-    "invalid_level": {"message": "Choose a whole-number speaker level from -6 to +6 dB."},
+    "invalid_level": {"message": "Choose a whole number within this control's range."},
     "local_unavailable": {"message": "The soundbar's local API is unavailable."},
     "local_rejected": {"message": "The soundbar rejected this command. It may not be supported by this soundbar."},
     "invalid_volume": {"message": "Choose a whole-number volume from 0 to 100."},
