@@ -19,7 +19,7 @@ Home Assistant add-on. Keep the built-in integration for power, volume and mute.
 | Sound mode selector (HW-Q930D) | Standard, Surround, Game Pro, Adaptive Sound; assumed state |
 | Woofer level (HW-Q930D) | Whole-number adjustments from −6 to +6 dB; assumed state |
 | Channel levels (HW-Q930D) | Center, side, wide, front top, rear, rear top; −6 to +6 dB each |
-| Reported input source sensor | Shows the last source reported by SmartThings |
+| Reported input source sensor | Shows the last source reported by SmartThings; disabled by default when the local API is on |
 
 **Assumed state is deliberate.** Samsung's advanced-audio readback is unreliable.
 The switches restore their previous assumed state after restarting HA, but cannot
@@ -112,21 +112,26 @@ Multiple soundbars and multiple SmartThings
 locations are supported, with one companion entry per soundbar.
 
 The companion appears as its own device linked to the original SmartThings device.
-It adds no polling loop or extra event-stream connection.
+The SmartThings controls add no polling loop or extra event-stream connection. Only the
+optional local API polls the soundbar, on your network.
 
 ## Installation
 
-This package is prepared for distribution; it has not yet been published to GitHub
-or submitted to HACS. Use manual installation until publication.
+Requires Home Assistant 2026.9 or later, with the built-in SmartThings integration
+already set up for your soundbar.
 
-1. Copy `custom_components/soundbar_control` into your HA `config/custom_components/`.
-2. Restart Home Assistant.
+**With HACS**
+
+1. In HACS, open the menu and choose **Custom repositories**. Add
+   `https://github.com/c-kick/ha-smartthings-soundbar-extras` with type **Integration**.
+2. Search HACS for **SmartThings Soundbar Extras**, download it, and restart Home Assistant.
 3. Open **Settings → Devices & services → Add integration**.
 4. Search for **SmartThings Soundbar Extras**, select your soundbar, and choose its controls.
 
-After publication, the repository can be added to HACS as an **Integration** custom
-repository. Restart after downloading, then follow steps 3–4. `hacs.json` and the
-single-domain directory layout are included; HACS default-list approval is separate.
+**Manually**
+
+Copy `custom_components/soundbar_control` into your HA `config/custom_components/`,
+restart Home Assistant, then follow steps 3–4.
 
 To change enabled audio controls, use **Reconfigure** on the integration entry.
 Upgrading from 2.0 enables the eight new HW-Q930D controls once, without changing

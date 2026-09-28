@@ -227,3 +227,19 @@ async def test_write_while_polls_fail_stays_unavailable(
     await hass.services.async_call("switch", "turn_on", {"entity_id": eid}, blocking=True)
     await hass.async_block_till_done()
     assert hass.states.get(eid).state == "unavailable"
+
+
+async def test_cloud_source_sensor_disabled_by_default_with_local_api(
+    hass, parent, local_entry, dependencies
+):
+    """SmartThings' input report is often stale; Input (local) reads the real one."""
+    await ready(hass, local_entry)
+    entry = er.async_get(hass).async_get(entity_id(hass, "sensor", "input_source"))
+    assert entry.disabled_by is er.RegistryEntryDisabler.INTEGRATION
+
+
+async def test_cloud_source_sensor_enabled_without_local_api(hass, parent, entry, dependencies):
+    await ready(hass, entry)
+    assert (
+        er.async_get(hass).async_get(entity_id(hass, "sensor", "input_source")).disabled_by is None
+    )

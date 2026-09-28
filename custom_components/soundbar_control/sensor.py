@@ -16,6 +16,12 @@ async def async_setup_entry(hass, entry, async_add_entities):
 
 
 class SourceSensor(SoundbarEntity, SensorEntity):
+    def __init__(self, runtime, key):
+        super().__init__(runtime, key)
+        # SmartThings' report is often stale; with the local API, Input (local) is the
+        # one to trust. Only applies when the entity is first registered.
+        self._attr_entity_registry_enabled_default = runtime.local is None
+
     @property
     def native_value(self):
         return self.runtime.source
