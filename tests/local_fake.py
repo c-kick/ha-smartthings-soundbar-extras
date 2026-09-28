@@ -66,6 +66,7 @@ class FakeSoundbar:
             "identifier": "22_AV_HW-Q930D",
         }
         self.failing: set[str] = set()  # methods that answer GENERIC_ERROR
+        self.refuse: set[str] = set()  # write methods that answer {"success": false}
         self.raw: dict[str, object] = {}  # method -> exact JSON body to send
         self.tokens: set[str] = set()
         self.calls: list[tuple[str, dict]] = []
@@ -111,6 +112,8 @@ class FakeSoundbar:
 
     def _dispatch(self, method, params):
         state = self.state
+        if method in self.refuse and len(params) > 1:  # a write: value plus AccessToken
+            return self._result({"success": False})
         reads = {
             "getIdentifier": ("identifier", "identifier"),
             "getVolume": ("volume", "volume"),

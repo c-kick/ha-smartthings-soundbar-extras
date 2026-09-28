@@ -22,6 +22,8 @@ MAX_TEXT = 64
 # The soundbar reports a bad token with the same generic error as any rejected call.
 # A token that worked this recently is trusted, so an error is about the call itself.
 TOKEN_TRUST_SECONDS = 60
+# The soundbar answers token requests less than about 4 s apart with an empty body.
+TOKEN_SPACING = 4.0
 KNOWN_INPUTS = ("HDMI_IN1", "HDMI_IN2", "E_ARC", "ARC", "D_IN", "BT", "WIFI_IDLE")
 KNOWN_SOUND_MODES = (
     "STANDARD",
@@ -116,6 +118,9 @@ class LocalSoundbarClient:
         self.host = host
         self._port = port
         self._fingerprint = aiohttp.Fingerprint(bytes.fromhex(cert_sha256.replace(":", "")))
+        self._token_requested_at: float | None = None
+        self._clock = time.monotonic
+        self._sleep = asyncio.sleep
         self._token: str | None = None
         self._token_ok_at = 0.0
         self._lock = asyncio.Lock()
@@ -162,6 +167,11 @@ class LocalSoundbarClient:
         return result
 
     async def _new_token(self) -> None:
+        if self._token_requested_at is not None:
+            wait = self._token_requested_at + TOKEN_SPACING - self._clock()
+            if wait > 0:
+                await self._sleep(wait)
+        self._token_requested_at = self._clock()
         try:
             token = (await self._post("createAccessToken")).get("AccessToken")
         except LocalApiError as err:
@@ -249,23 +259,28 @@ class LocalSoundbarClient:
             raise LocalApiError("no field could be read")
         return LocalStatus(**values, failed=frozenset(failed), read_started=started)
 
+    async def _write(self, method: str, **params) -> None:
+        # Some models refuse a value with success: false instead of an error.
+        if (await self._call(method, **params)).get("success") is False:
+            raise LocalApiError("rejected")
+
     async def set_power(self, on: bool) -> None:
-        await self._call("powerControl", power="powerOn" if on else "powerOff")
+        await self._write("powerControl", power="powerOn" if on else "powerOff")
 
     async def set_input(self, source: str) -> None:
         if not valid_value(source):
             raise ValueError(source)
-        await self._call("inputSelectControl", inputSource=source)
+        await self._write("inputSelectControl", inputSource=source)
 
     async def set_sound_mode(self, mode: str) -> None:
         if not valid_value(mode):
             raise ValueError(mode)
-        await self._call("soundModeControl", soundMode=mode)
+        await self._write("soundModeControl", soundMode=mode)
 
     async def set_volume(self, level: int) -> None:
         if isinstance(level, bool) or not isinstance(level, int) or not 0 <= level <= 100:
             raise ValueError(level)
-        await self._call("volumeControl", volume=level)
+        await self._write("volumeControl", volume=level)
 
     async def set_mute(self, muted: bool) -> None:
-        await self._call("muteControl", mute=bool(muted))
+        await self._write("muteControl", mute=bool(muted))

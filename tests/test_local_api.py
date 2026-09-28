@@ -33,7 +33,14 @@ async def session():
 
 
 def client_for(session, bar, sha256=None):
-    return LocalSoundbarClient(session, "127.0.0.1", sha256 or bar.sha256, port=bar.port)
+    client = LocalSoundbarClient(session, "127.0.0.1", sha256 or bar.sha256, port=bar.port)
+    client.slept = []
+
+    async def sleep(seconds):
+        client.slept.append(seconds)
+
+    client._sleep = sleep
+    return client
 
 
 async def test_fetch_certificate_matches_server(bar):
@@ -214,3 +221,43 @@ def test_fields_order_is_power_first():
 def test_url_brackets_ipv6_literals(host, url):
     client = LocalSoundbarClient(None, host, "AA" * 32)
     assert client.url == url
+
+
+@pytest.mark.parametrize(
+    ("call", "method"),
+    [
+        (lambda c: c.set_power(False), "powerControl"),
+        (lambda c: c.set_input("HDMI_IN1"), "inputSelectControl"),
+        (lambda c: c.set_sound_mode("GAME"), "soundModeControl"),
+        (lambda c: c.set_volume(25), "volumeControl"),
+        (lambda c: c.set_mute(True), "muteControl"),
+    ],
+)
+async def test_success_false_is_a_rejection(session, bar, call, method):
+    client = client_for(session, bar)
+    await client.identify()
+    bar.refuse.add(method)
+    with pytest.raises(LocalApiError):
+        await call(client)
+    # Not mistaken for an expired token: no renewal, no second attempt.
+    assert bar.methods().count("createAccessToken") == 1
+    assert bar.methods().count(method) == 1
+
+
+async def test_token_requests_are_spaced(session, bar, monkeypatch):
+    client = client_for(session, bar)
+    now = [100.0]
+    client._clock = lambda: now[0]
+    await client.identify()
+    bar.tokens.clear()  # the soundbar forgot every token
+    monkeypatch.setattr(client, "_token_ok_at", 0.0)
+    now[0] = 101.5
+    assert await client.identify() == "22_AV_HW-Q930D"
+    assert client.slept == [pytest.approx(2.5)]
+    assert bar.methods().count("createAccessToken") == 2
+
+
+async def test_first_token_does_not_wait(session, bar):
+    client = client_for(session, bar)
+    await client.identify()
+    assert client.slept == []
