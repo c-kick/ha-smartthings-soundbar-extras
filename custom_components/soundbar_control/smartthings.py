@@ -1,6 +1,7 @@
 """Isolate the dependency on the built-in SmartThings runtime API here."""
 
 import asyncio
+import logging
 from collections.abc import Callable
 from typing import Any
 
@@ -11,6 +12,8 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from pysmartthings import SmartThingsError
 
 from .const import DOMAIN, SOURCE_CAPABILITY
+
+_LOGGER = logging.getLogger(__name__)
 
 
 def attribute(device, capability: str, name: str) -> Any:
@@ -143,4 +146,5 @@ class SmartThingsAdapter:
             or not isinstance(results[0], dict)
             or results[0].get("status") != "COMPLETED"
         ):
+            _LOGGER.warning("SmartThings rejected %s.%s: %s", capability, command, result)
             raise HomeAssistantError(translation_domain=DOMAIN, translation_key="command_failed")
