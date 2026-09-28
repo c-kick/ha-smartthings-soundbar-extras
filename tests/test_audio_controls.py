@@ -12,8 +12,14 @@ from pytest_homeassistant_custom_component.common import (
     mock_restore_cache_with_extra_data,
 )
 
-from custom_components.soundbar_control.const import DOMAIN, PREFIX
-from custom_components.soundbar_control.profiles import CHANNELS, EXTRA_CONTROLS, SOUND_MODES
+from custom_components.soundbar_control.const import DOMAIN, PREFIX, SETTINGS
+from custom_components.soundbar_control.profiles import (
+    ALL_CONTROLS,
+    CHANNELS,
+    EXTRA_CONTROLS,
+    SOUND_MODES,
+    profile,
+)
 
 from .conftest import DEVICE
 from .test_integration import setup
@@ -34,7 +40,7 @@ async def test_new_entities_start_unknown_without_commands(hass, parent, audio_e
     ) as command:
         await setup(hass, audio_entry)
         assert (
-            len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 12
+            len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 13
         )
         for key in EXTRA_CONTROLS:
             domain = "select" if key == "sound_mode" else "number"
@@ -145,27 +151,14 @@ async def test_minor_upgrade_enables_controls_once(hass, parent, dependencies):
     entry.add_to_hass(hass)
     await setup(hass, entry)
     assert entry.minor_version == 2
-    assert entry.data["settings"] == ["nightmode", *EXTRA_CONTROLS]
+    assert entry.data["settings"] == [
+        "nightmode",
+        *[k for k in EXTRA_CONTROLS if k != "rear_side_level"],
+    ]
     # A later reconfigure choice is not undone by another restart/reload.
     hass.config_entries.async_update_entry(entry, data={**entry.data, "settings": ["nightmode"]})
     assert await hass.config_entries.async_reload(entry.entry_id)
     assert entry.data["settings"] == ["nightmode"]
-
-
-async def test_unprofiled_model_does_not_get_extra_entities(
-    hass, parent, audio_entry, dependencies
-):
-    hass.config_entries.async_update_entry(
-        audio_entry, data={**audio_entry.data, "model": "HW-UNKNOWN"}
-    )
-    await setup(hass, audio_entry)
-    assert len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 4
-    with patch.object(
-        audio_entry.runtime_data.adapter, "command", new_callable=AsyncMock
-    ) as command:
-        with pytest.raises(HomeAssistantError):
-            await audio_entry.runtime_data.set_level("woofer_level", 0)
-        command.assert_not_called()
 
 
 async def test_sound_mode_restored_without_command(hass, parent, audio_entry, dependencies):
@@ -213,3 +206,56 @@ async def test_level_restored_without_command(
         await setup(hass, audio_entry)
         assert hass.states.get(previous.entity_id).state == expected
         command.assert_not_called()
+
+
+@pytest.mark.parametrize(
+    "model", ["HW-Q930D", "HW-Q930D/ZF", "hw-q930d", "HW-Q990F", "HW-S800D", ""]
+)
+def test_every_model_is_offered_every_control(model):
+    assert profile(model).offered == ALL_CONTROLS
+
+
+@pytest.mark.parametrize(
+    ("model", "defaults"),
+    [
+        ("HW-Q930D", tuple(k for k in ALL_CONTROLS if k != "rear_side_level")),
+        ("HW-Q930D/ZF", tuple(k for k in ALL_CONTROLS if k != "rear_side_level")),
+        ("hw-q930d", tuple(k for k in ALL_CONTROLS if k != "rear_side_level")),
+        ("HW-Q990F", SETTINGS),
+        ("HW-QS730D", SETTINGS),
+        ("HW-S800D", ()),
+        ("", ()),
+    ],
+)
+def test_defaults(model, defaults):
+    assert profile(model).defaults == defaults
+
+
+async def test_rear_side_payload(hass, parent, audio_entry, dependencies):
+    await setup(hass, audio_entry)
+    runtime = audio_entry.runtime_data
+    with patch.object(runtime.adapter, "command", new_callable=AsyncMock) as command:
+        await runtime.set_level("rear_side_level", -2)
+        command.assert_awaited_once_with(
+            "execute",
+            "execute",
+            ["/sec/networkaudio/channelVolume",
+             {f"{PREFIX}channelVolume": [{"name": "Spk_Rear_Side", "value": -2}]}],
+        )  # fmt: skip
+
+
+async def test_untested_model_gets_what_it_enabled(hass, parent, audio_entry, dependencies):
+    hass.config_entries.async_update_entry(
+        audio_entry, data={**audio_entry.data, "model": "HW-S800D"}
+    )
+    await setup(hass, audio_entry)
+    assert len(er.async_entries_for_config_entry(er.async_get(hass), audio_entry.entry_id)) == 13
+
+
+async def test_existing_entry_keeps_its_controls(hass, parent, entry, dependencies):
+    old_defaults = [k for k in ALL_CONTROLS if k != "rear_side_level"]
+    hass.config_entries.async_update_entry(entry, data={**entry.data, "settings": old_defaults})
+    await setup(hass, entry)
+    registry = er.async_get(hass)
+    assert registry.async_get_entity_id("number", DOMAIN, f"{DEVICE}_rear_side_level") is None
+    assert entry.data["settings"] == old_defaults

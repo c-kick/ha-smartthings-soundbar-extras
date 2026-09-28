@@ -228,3 +228,15 @@ async def test_unknown_major_version_is_not_migrated(hass, parent, dependencies)
     entry.add_to_hass(hass)
     assert not await hass.config_entries.async_setup(entry.entry_id)
     assert entry.state is ConfigEntryState.MIGRATION_ERROR
+
+
+async def test_features_preselect_the_profile_defaults(hass, parent, dependencies):
+    result = await hass.config_entries.flow.async_init(DOMAIN, context={"source": "user"})
+    result = await hass.config_entries.flow.async_configure(
+        result["flow_id"], {"device": f"{parent.entry_id}:{DEVICE}"}
+    )
+    schema = result["data_schema"].schema
+    key = next(k for k in schema if k == "settings")
+    assert "rear_side_level" not in key.default()
+    assert "center_level" in key.default()
+    assert "rear_side_level" in schema[key].config["options"]

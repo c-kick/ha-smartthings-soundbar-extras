@@ -9,7 +9,7 @@
       },
       "features": {
         "title": "Choose advanced audio controls",
-        "description": "Enable settings your soundbar supports in the SmartThings app. HW-Q930D also offers sound modes and individual speaker levels. These controls remember the last accepted command; they cannot detect remote or app changes. Source controls are added when advertised by the device.",
+        "description": "Only the HW-Q930D has been tested. Choose the controls the SmartThings app shows for this soundbar; on other models a control may do nothing. These controls remember the last accepted command and cannot detect changes made in the app or with the remote.",
         "data": {"settings": "Audio controls"}
       }
     },
@@ -57,7 +57,7 @@
     "nightmode": "Night mode", "voiceamplifier": "Voice amplifier", "bassboost": "Bass boost",
     "sound_mode": "Sound mode", "woofer_level": "Woofer level",
     "center_level": "Center level", "side_level": "Side level", "wide_level": "Wide level",
-    "front_top_level": "Front top level", "rear_level": "Rear level", "rear_top_level": "Rear top level"
+    "front_top_level": "Front top level", "rear_level": "Rear level", "rear_top_level": "Rear top level", "rear_side_level": "Rear side level"
   }}},
   "entity": {
     "switch": {
@@ -82,6 +82,7 @@
       "side_level": {"name": "Side level"}, "wide_level": {"name": "Wide level"},
       "front_top_level": {"name": "Front top level"}, "rear_level": {"name": "Rear level"},
       "rear_top_level": {"name": "Rear top level"},
+      "rear_side_level": {"name": "Rear side level"},
       "volume_local": {"name": "Volume (local)"}
     },
     "media_player": {

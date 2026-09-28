@@ -30,7 +30,7 @@ from .local_api import (
     LocalSoundbarClient,
     fetch_certificate_sha256,
 )
-from .profiles import available_controls, has_q930d_profile
+from .profiles import profile
 from .smartthings import discover
 
 
@@ -103,7 +103,7 @@ class SoundbarControlConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     async def async_step_features(self, user_input=None):
-        controls = available_controls(self._selected["model"])
+        controls = profile(self._selected["model"]).offered
         if user_input is not None:
             if not set(user_input.get("settings", [])).issubset(controls):
                 return self.async_abort(reason="invalid_settings")
@@ -116,9 +116,7 @@ class SoundbarControlConfigFlow(ConfigFlow, domain=DOMAIN):
                 title=self._selected["name"],
                 data={**self._selected, "settings": user_input.get("settings", [])},
             )
-        defaults = self._selected.get(
-            "settings", (list(controls) if has_q930d_profile(self._selected["model"]) else [])
-        )
+        defaults = self._selected.get("settings", list(profile(self._selected["model"]).defaults))
         return self.async_show_form(
             step_id="features",
             data_schema=vol.Schema(

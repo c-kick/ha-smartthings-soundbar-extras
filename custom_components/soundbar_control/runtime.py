@@ -8,7 +8,7 @@ from homeassistant.exceptions import HomeAssistantError, ServiceValidationError
 from homeassistant.helpers.event import async_call_later
 
 from .const import DOMAIN, PREFIX, SOUND_MODE_SETTLE, SOURCE_CAPABILITY
-from .profiles import CHANNELS, LEVELS, SOUND_MODES, available_controls, valid_level
+from .profiles import CHANNELS, LEVELS, SOUND_MODES, profile, valid_level
 from .smartthings import SmartThingsAdapter
 
 
@@ -43,9 +43,9 @@ class SoundbarRuntime:
         return self.adapter.device is not None and self.online
 
     def enabled(self, key: str) -> bool:
-        """Selected by the user and supported by this model's profile."""
-        return key in self.entry.data["settings"] and key in available_controls(
-            self.entry.data["model"]
+        """Selected by the user and offered for this model."""
+        return (
+            key in self.entry.data["settings"] and key in profile(self.entry.data["model"]).offered
         )
 
     @callback

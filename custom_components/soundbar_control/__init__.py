@@ -15,7 +15,7 @@ from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from .const import CONF_CERT, CONF_HOST, CONF_USE_LOCAL, DOMAIN, PLATFORMS, SETTINGS
 from .coordinator import LocalCoordinator, delete_local_issues
 from .local_api import LocalSoundbarClient
-from .profiles import EXTRA_CONTROLS, has_q930d_profile
+from .profiles import profile
 from .runtime import SoundbarRuntime
 
 _LOGGER = logging.getLogger(__name__)
@@ -122,13 +122,13 @@ async def async_remove_entry(hass, entry: SoundbarConfigEntry):
 
 
 async def async_migrate_entry(hass, entry: SoundbarConfigEntry):
-    """Enable the HW-Q930D audio controls once when upgrading from 2.0."""
+    """Enable the tested model's audio controls once when upgrading from 2.0."""
     if entry.version != 2:
         return False
     if entry.minor_version < 2:
         settings = list(entry.data["settings"])
-        if has_q930d_profile(entry.data["model"]):
-            settings.extend(key for key in EXTRA_CONTROLS if key not in settings)
+        extras = [key for key in profile(entry.data["model"]).defaults if key not in SETTINGS]
+        settings.extend(key for key in extras if key not in settings)
         hass.config_entries.async_update_entry(
             entry, minor_version=2, data={**entry.data, "settings": settings}
         )

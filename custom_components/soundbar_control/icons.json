@@ -21,6 +21,7 @@
       "side_level": {"default": "mdi:surround-sound"}, "wide_level": {"default": "mdi:surround-sound"},
       "front_top_level": {"default": "mdi:surround-sound"}, "rear_level": {"default": "mdi:surround-sound"},
       "rear_top_level": {"default": "mdi:surround-sound"},
+      "rear_side_level": {"default": "mdi:surround-sound"},
       "volume_local": {"default": "mdi:volume-high"}
     }
   }
