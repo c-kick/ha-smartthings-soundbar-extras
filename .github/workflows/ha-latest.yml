@@ -1,0 +1,31 @@
+name: Tests against the newest Home Assistant
+# smartthings.py relies on internal parts of HA's SmartThings integration, which can
+# change in any release. This run catches that before users do.
+on:
+  schedule:
+    - cron: '0 6 * * 1'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+      - run: pip install --upgrade pytest-homeassistant-custom-component
+      - name: Install the pysmartthings version this HA requires
+        run: |
+          python - <<'EOF' > smartthings-requirements.txt
+          # Read the manifest without importing: that import needs pysmartthings.
+          import importlib.util, json, pathlib
+          root = pathlib.Path(importlib.util.find_spec("homeassistant").origin).parent
+          manifest = json.loads((root / "components/smartthings/manifest.json").read_text())
+          print("\n".join(manifest["requirements"]))
+          EOF
+          cat smartthings-requirements.txt
+          pip install -r smartthings-requirements.txt
+      - run: pytest

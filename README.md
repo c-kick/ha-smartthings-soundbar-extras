@@ -212,7 +212,9 @@ session, while mocking network requests. The parent integration is modeled with 
 real runtime types and `pysmartthings` (pinned to HA's version in
 `requirements_test.txt`); events go through the library's own parsing and dispatch.
 Bump that pin when HA does. CI runs tests and lint, with separate
-HACS/hassfest validation workflows for publication.
+HACS/hassfest validation workflows. A weekly run tests against the newest HA release
+and the pysmartthings version it requires, to catch changes in the SmartThings
+integration's internals early.
 
 ## Credits and license
 
