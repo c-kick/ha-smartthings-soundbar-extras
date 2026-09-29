@@ -3,7 +3,8 @@
 **The soundbar controls missing from Home Assistant's SmartThings integration.**
 
 Night mode, voice amplifier and bass boost as native switches, plus sound modes
-and individual speaker levels for HW-Q930D. Uses the SmartThings
+and individual speaker levels. Tested on the HW-Q930D; see
+[Compatibility](#compatibility) for other models. Uses the SmartThings
 connection you already have: no personal access token, second login, or YAML helpers.
 
 This is a **companion integration**, not a replacement for SmartThings and not a
