@@ -15,6 +15,7 @@ from .profiles import (
     MIN_LEVEL,
     SOUND_MODES,
     WOOFER_MAX,
+    WOOFER_MIN,
     profile,
     valid_level,
 )
@@ -142,7 +143,7 @@ class SoundbarRuntime:
 
     def level_range(self, key: str) -> tuple[int, int]:
         if key == "woofer_level":
-            return profile(self.entry.data["model"]).woofer_min, WOOFER_MAX
+            return WOOFER_MIN, WOOFER_MAX
         return MIN_LEVEL, MAX_LEVEL
 
     async def set_level(self, key: str, value: float):

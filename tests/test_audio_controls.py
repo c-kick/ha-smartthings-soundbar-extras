@@ -261,19 +261,14 @@ async def test_existing_entry_keeps_its_controls(hass, parent, entry, dependenci
     assert entry.data["settings"] == old_defaults
 
 
-async def test_woofer_accepts_minus_twelve(hass, parent, audio_entry, dependencies):
+async def test_woofer_stops_at_minus_six(hass, parent, audio_entry, dependencies):
+    """Below -6 the HW-Q930D snaps to a single -12 step, so HA would show a wrong value."""
     await setup(hass, audio_entry)
-    runtime = audio_entry.runtime_data
-    with patch.object(runtime.adapter, "command", new_callable=AsyncMock) as command:
-        await runtime.set_level("woofer_level", -12)
-        command.assert_awaited_once_with(
-            "execute", "execute", ["/sec/networkaudio/woofer", {f"{PREFIX}woofer": -12}]
-        )
     eid = er.async_get(hass).async_get_entity_id("number", DOMAIN, f"{DEVICE}_woofer_level")
-    assert hass.states.get(eid).attributes["min"] == -12
+    assert hass.states.get(eid).attributes["min"] == -6
 
 
-@pytest.mark.parametrize("value", [-13, 7])
+@pytest.mark.parametrize("value", [-12, -8, -7, 7])
 async def test_woofer_outside_range_never_sent(hass, parent, audio_entry, dependencies, value):
     await setup(hass, audio_entry)
     runtime = audio_entry.runtime_data
@@ -283,7 +278,7 @@ async def test_woofer_outside_range_never_sent(hass, parent, audio_entry, depend
         command.assert_not_called()
 
 
-@pytest.mark.parametrize(("stored", "kept"), [(-10, "-10"), (-13, "unknown")])
+@pytest.mark.parametrize(("stored", "kept"), [(-6, "-6"), (-10, "unknown")])
 async def test_woofer_restore_uses_the_range(hass, parent, audio_entry, dependencies, stored, kept):
     eid = (
         er.async_get(hass)

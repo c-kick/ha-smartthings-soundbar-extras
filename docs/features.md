@@ -148,5 +148,10 @@ Research on 2026-09-28: since March 2024 SmartThings no longer returns OCF execu
 status, so support can't be detected per device. Every model is offered every control;
 the HW-Q930D pre-selects the tested set, other Q-series the three switches. The local
 API is year-bound (2024 D and newer), not model-bound. Rear side level (Spk_Rear_Side)
-comes from the Q990/Q995 manuals. The woofer range is −12..+6 following other projects
-and a Q90R report.
+comes from the Q990/Q995 manuals.
+
+Woofer range: other projects use −12..+6 and a Q90R owner needed −12. On 2026-09-29 the
+HW-Q930D was sent −8 through `execute` and the SmartThings app then showed −12; its app
+slider shows +6, 0, −6, −12 with almost no space between the last two. So −12 is a
+single extra step directly below −6, and values in between snap to it. The integration
+keeps −6..+6 for every model, because an assumed state of −8 would be wrong.

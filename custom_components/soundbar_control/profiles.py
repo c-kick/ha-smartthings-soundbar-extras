@@ -26,11 +26,11 @@ EXTRA_CONTROLS = ("sound_mode", *LEVELS)
 ALL_CONTROLS = (*SETTINGS, *EXTRA_CONTROLS)
 MIN_LEVEL = -6
 MAX_LEVEL = 6
-WOOFER_MIN = -12
+# Not -12: below -6 the HW-Q930D snaps to a single -12 step (sent -8, the SmartThings
+# app showed -12; 2026-09-29), so HA would show a value the soundbar doesn't have.
+WOOFER_MIN = MIN_LEVEL
 WOOFER_MAX = 6
 TESTED_MODEL = "HW-Q930D"
-# Set to MIN_LEVEL if the live check on the HW-Q930D does not apply -8.
-TESTED_WOOFER_MIN = WOOFER_MIN
 
 
 @dataclass(frozen=True)
@@ -39,17 +39,16 @@ class Profile:
 
     offered: tuple[str, ...]
     defaults: tuple[str, ...]
-    woofer_min: int
 
 
 def profile(model: str) -> Profile:
     base = model.upper().split("/", 1)[0]
     if base == TESTED_MODEL:
         tested = tuple(key for key in ALL_CONTROLS if key != "rear_side_level")
-        return Profile(ALL_CONTROLS, tested, TESTED_WOOFER_MIN)
+        return Profile(ALL_CONTROLS, tested)
     if base.startswith("HW-Q"):
-        return Profile(ALL_CONTROLS, SETTINGS, WOOFER_MIN)
-    return Profile(ALL_CONTROLS, (), WOOFER_MIN)
+        return Profile(ALL_CONTROLS, SETTINGS)
+    return Profile(ALL_CONTROLS, ())
 
 
 def valid_level(value, low: int = MIN_LEVEL, high: int = MAX_LEVEL) -> bool:

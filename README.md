@@ -17,7 +17,7 @@ Home Assistant add-on. Keep the built-in integration for power, volume and mute.
 | Voice amplifier switch | Same assumed-state behavior |
 | Bass boost switch | Same assumed-state behavior |
 | Sound mode selector | Standard, Surround, Game Pro, Adaptive Sound; assumed state |
-| Woofer level | Whole-number adjustments from −12 to +6 dB; assumed state |
+| Woofer level | Whole-number adjustments from −6 to +6 dB; assumed state |
 | Channel levels | Center, side, wide, front top, rear, rear top, rear side; −6 to +6 dB each |
 | Reported input source sensor | Shows the last source reported by SmartThings; disabled by default when the local API is on |
 
@@ -30,7 +30,10 @@ Cloud acceptance does not prove the soundbar applied the setting.
 Mode and level controls also restore their last accepted value. They send **no
 commands at startup** and never initialize your speaker levels to zero. Channel
 adjustments update only the selected channel. All levels use sliders with
-1 dB steps: channels from −6 to +6, the woofer from −12 to +6.
+1 dB steps from −6 to +6. The woofer has one more position, −12, directly below −6:
+the HW-Q930D turns any value below −6 into −12 (tested by sending −8; the SmartThings
+app then showed −12). This integration stops at −6 so it never shows a value the
+soundbar doesn't have; use the SmartThings app for −12.
 
 There is no cloud input control. The Q930D's cloud capability only offers
 `setNextInputSource`, and on the real soundbar SmartThings answers `ACCEPTED` but the
